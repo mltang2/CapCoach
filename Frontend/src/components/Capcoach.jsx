@@ -10,11 +10,6 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
     const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
 
     const avgMonthlyIncome = latestMonth.cash_flow.income.total;
-    const avgFixedExpenses = latestMonth.cash_flow.expenses.fixed;
-    const avgDebtPayments = latestMonth.cash_flow.expenses.debt_payments;
-
-    const essentialExpenses = avgFixedExpenses + avgDebtPayments;
-    const maxSavingsPotential = avgMonthlyIncome - essentialExpenses;
 
     // Calculate average spending by category from statement data
     const calculateSpendingByCategory = () => {
@@ -77,16 +72,20 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
         const additionalGrowthNeeded = targetNetWorth - baselinePredicted;
         const additionalSavingsNeeded = additionalGrowthNeeded / 12;
 
-        // Check if achievable - comparing against max savings potential
+        // Calculate maximum possible cuts from variable spending
+        const totalVariableSpending = Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0);
+        const maxPossibleCutsFromVariable = totalVariableSpending * 0.45; // Average of 40-50% caps
+
+        // Check if achievable - comparing against what can actually be cut from variable expenses
         // For negative adjustments (decreasing target), always achievable
-        // For positive adjustments, need to check if additional savings is within capacity
-        const isAchievable = additionalSavingsNeeded <= maxSavingsPotential;
+        // For positive adjustments, need to check if additional savings is within cuttable capacity
+        const isAchievable = additionalSavingsNeeded <= maxPossibleCutsFromVariable;
 
         // Calculate what percentage of income this represents
         const percentageOfIncome = (additionalSavingsNeeded / avgMonthlyIncome) * 100;
 
-        // Calculate maximum possible adjustment
-        const maxAdditionalGrowth = maxSavingsPotential * 12;
+        // Calculate maximum possible adjustment based on variable spending cuts
+        const maxAdditionalGrowth = maxPossibleCutsFromVariable * 12;
         const maxTargetNetWorth = baselinePredicted + maxAdditionalGrowth;
         const maxAdjustmentPercent = ((maxTargetNetWorth - baselinePredicted) / Math.abs(baselinePredicted)) * 100;
 
@@ -96,7 +95,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
             additionalSavingsNeeded,
             isAchievable,
             percentageOfIncome,
-            maxMonthlySavings: maxSavingsPotential,
+            maxMonthlySavings: maxPossibleCutsFromVariable,
             maxAdditionalGrowth,
             maxAdjustmentPercent,
             baselinePredicted
@@ -104,10 +103,8 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
     };
 
     const applyTargetSavings = () => {
-        const calculation = calculateSavingsForTarget();
-        if (calculation) {
-            fetchPrediction(calculation.additionalSavingsNeeded);
-        }
+        // No need to fetch - we calculate everything client-side
+        // The calculation is already done and displayed via calculateSavingsForTarget()
     };
 
     return <div className="dashboard-style">
@@ -254,7 +251,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                     type="range"
                                     min="-100"
                                     max="100"
-                                    step="5"
+                                    step="0.1"
                                     value={targetGrowthPercent}
                                     onChange={(e) => setTargetGrowthPercent(Number(e.target.value))}
                                     style={{
@@ -365,11 +362,146 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                 </Card>
                                             </div>
                                             {calculation.additionalSavingsNeeded > 100 && (
-                                                <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
-                                                    <p style={{color: '#004879', marginBottom: '8px'}}>
-                                                        Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
-                                                    </p>
-                                                </Card>
+                                                <>
+                                                    <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
+                                                        <p style={{color: '#004879', marginBottom: '8px'}}>
+                                                            Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
+                                                        </p>
+                                                    </Card>
+
+                                                    <Card style={{ padding: '20px', backgroundColor: '#fff3cd', border: '1px solid #ffc107', marginTop: '16px' }}>
+                                                        <h4 style={{color: '#856404', marginBottom: '16px'}}>Ways to Bridge the Gap</h4>
+                                                        <p style={{color: '#856404', marginBottom: '16px'}}>
+                                                            Here's how to save an additional <strong>${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong>:
+                                                        </p>
+
+                                                        <div style={{backgroundColor: 'white', padding: '16px', borderRadius: '8px'}}>
+                                                            <h5 style={{color: '#003E5C', marginBottom: '12px'}}>Recommended Spending Adjustments:</h5>
+
+                                                            {(() => {
+                                                                const gap = calculation.additionalSavingsNeeded;
+                                                                const totalVariableSpending = Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0);
+
+                                                                // Two-pass algorithm to ensure cuts sum to exactly the gap
+                                                                const categories = [];
+
+                                                                if (spendingByCategory.dining > 0) {
+                                                                    categories.push({
+                                                                        category: 'Dining & Restaurants',
+                                                                        current: spendingByCategory.dining,
+                                                                        maxCap: 0.5,
+                                                                        tip: 'Cook at home more, limit takeout to 2-3 times/week'
+                                                                    });
+                                                                }
+
+                                                                if (spendingByCategory.shopping > 0 || spendingByCategory.entertainment > 0) {
+                                                                    const totalShopEnt = (spendingByCategory.shopping || 0) + (spendingByCategory.entertainment || 0);
+                                                                    categories.push({
+                                                                        category: 'Shopping & Entertainment',
+                                                                        current: totalShopEnt,
+                                                                        maxCap: 0.5,
+                                                                        tip: 'Limit impulse purchases, use 24-hour rule'
+                                                                    });
+                                                                }
+
+                                                                if (spendingByCategory.transportation > 0) {
+                                                                    categories.push({
+                                                                        category: 'Transportation',
+                                                                        current: spendingByCategory.transportation,
+                                                                        maxCap: 0.4,
+                                                                        tip: 'Carpool, public transit, combine errands'
+                                                                    });
+                                                                }
+
+                                                                if (spendingByCategory.other > 0) {
+                                                                    categories.push({
+                                                                        category: 'Other Variable Expenses',
+                                                                        current: spendingByCategory.other,
+                                                                        maxCap: 0.4,
+                                                                        tip: 'Review and reduce non-essential spending'
+                                                                    });
+                                                                }
+
+                                                                // First pass: calculate proportional cuts with caps
+                                                                const recommendations = categories.map(cat => {
+                                                                    const proportionalCut = (cat.current / totalVariableSpending) * gap;
+                                                                    const maxCut = cat.current * cat.maxCap;
+                                                                    const actualCut = Math.min(proportionalCut, maxCut);
+
+                                                                    return {
+                                                                        ...cat,
+                                                                        cut: actualCut,
+                                                                        hitCap: proportionalCut > maxCut,
+                                                                        availableRoom: maxCut - actualCut
+                                                                    };
+                                                                });
+
+                                                                // Calculate shortfall
+                                                                const totalCuts = recommendations.reduce((sum, rec) => sum + rec.cut, 0);
+                                                                const shortfall = gap - totalCuts;
+
+                                                                // Second pass: distribute shortfall to categories that haven't hit caps
+                                                                if (shortfall > 0.01) {
+                                                                    const uncappedCategories = recommendations.filter(rec => !rec.hitCap && rec.availableRoom > 0);
+
+                                                                    if (uncappedCategories.length > 0) {
+                                                                        const totalAvailableRoom = uncappedCategories.reduce((sum, rec) => sum + rec.availableRoom, 0);
+
+                                                                        uncappedCategories.forEach(rec => {
+                                                                            const additionalCut = Math.min(
+                                                                                (rec.availableRoom / totalAvailableRoom) * shortfall,
+                                                                                rec.availableRoom
+                                                                            );
+                                                                            rec.cut += additionalCut;
+                                                                        });
+                                                                    }
+                                                                }
+
+                                                                // Calculate final total
+                                                                const finalTotal = recommendations.reduce((sum, rec) => sum + rec.cut, 0);
+
+                                                                return (
+                                                                    <>
+                                                                        {recommendations.map((rec, idx) => (
+                                                                            <div key={idx} style={{
+                                                                                marginBottom: '10px',
+                                                                                paddingLeft: '12px',
+                                                                                borderLeft: '3px solid #ffc107'
+                                                                            }}>
+                                                                                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                                                    <span style={{fontWeight: 600}}>{rec.category}</span>
+                                                                                    <span style={{color: '#dc3545', fontWeight: 600}}>
+                                                                                        -${rec.cut.toFixed(2)}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <p style={{fontSize: '12px', color: '#999', margin: '2px 0'}}>
+                                                                                    Current: ${rec.current.toFixed(2)}/mo
+                                                                                </p>
+                                                                                <p style={{fontSize: '13px', color: '#666', margin: '4px 0 0 0'}}>
+                                                                                    {rec.tip}
+                                                                                </p>
+                                                                            </div>
+                                                                        ))}
+                                                                        <div style={{
+                                                                            marginTop: '16px',
+                                                                            paddingTop: '12px',
+                                                                            borderTop: '2px solid #ffc107',
+                                                                            display: 'flex',
+                                                                            justifyContent: 'space-between',
+                                                                            fontWeight: 700,
+                                                                            fontSize: '16px'
+                                                                        }}>
+                                                                            <span>Total Monthly Savings:</span>
+                                                                            <span style={{color: '#dc3545'}}>
+                                                                                -${finalTotal.toFixed(2)}
+                                                                            </span>
+                                                                        </div>
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    </Card>
+                                                </>
                                             )}
                                         </>
                                     ) : (
@@ -378,116 +510,26 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                 <div style={{textAlign: 'center'}}>
                                                     <h2 style={{color: '#721c24', marginBottom: '16px'}}>Goal Exceeds Maximum Capacity</h2>
                                                     <p style={{fontSize: '16px', color: '#721c24', marginBottom: '12px'}}>
-                                                        Target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month additional savings,
-                                                        but max capacity is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month
+                                                        This target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month in additional savings,
+                                                        but your maximum capacity (after essential expenses) is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month.
+                                                    </p>
+                                                    <p style={{fontSize: '16px', color: '#721c24', marginBottom: '8px'}}>
+                                                        You would need to reduce spending by an additional <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your variable expenses.
                                                     </p>
                                                     <p style={{fontSize: '14px', color: '#721c24'}}>
-                                                        Maximum achievable: {calculation.maxAdjustmentPercent.toFixed(1)}% adjustment
+                                                        Maximum achievable adjustment: <strong>{calculation.maxAdjustmentPercent.toFixed(1)}%</strong>
                                                         ({(calculation.baselinePredicted + calculation.maxAdditionalGrowth).toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
                                                     </p>
                                                 </div>
                                             </Card>
 
-                                            <Card style={{ padding: '20px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
-                                                <h4 style={{color: '#856404', marginBottom: '16px'}}>Ways to Bridge the Gap</h4>
-                                                <p style={{color: '#856404', marginBottom: '16px'}}>
-                                                    Reduce spending by <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong>:
-                                                </p>
-
-                                                <div style={{backgroundColor: 'white', padding: '16px', borderRadius: '8px'}}>
-                                                    <h5 style={{color: '#003E5C', marginBottom: '12px'}}>Recommended Spending Cuts:</h5>
-
-                                                    {(() => {
-                                                        const gap = calculation.additionalSavingsNeeded - calculation.maxMonthlySavings;
-                                                        const totalVariableSpending = Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0);
-
-                                                        // Calculate proportional cuts based on actual spending
-                                                        const recommendations = [];
-
-                                                        if (spendingByCategory.dining > 0) {
-                                                            const cutAmount = Math.min(
-                                                                (spendingByCategory.dining / totalVariableSpending) * gap,
-                                                                spendingByCategory.dining * 0.5 // Max 50% cut
-                                                            );
-                                                            recommendations.push({
-                                                                category: 'Dining & Restaurants',
-                                                                current: spendingByCategory.dining,
-                                                                cut: cutAmount,
-                                                                tip: 'Cook at home more, limit takeout to 2-3 times/week'
-                                                            });
-                                                        }
-
-                                                        if (spendingByCategory.shopping > 0 || spendingByCategory.entertainment > 0) {
-                                                            const totalShopEnt = (spendingByCategory.shopping || 0) + (spendingByCategory.entertainment || 0);
-                                                            const cutAmount = Math.min(
-                                                                (totalShopEnt / totalVariableSpending) * gap,
-                                                                totalShopEnt * 0.5
-                                                            );
-                                                            recommendations.push({
-                                                                category: 'Shopping & Entertainment',
-                                                                current: totalShopEnt,
-                                                                cut: cutAmount,
-                                                                tip: 'Limit impulse purchases, use 24-hour rule'
-                                                            });
-                                                        }
-
-                                                        if (spendingByCategory.transportation > 0) {
-                                                            const cutAmount = Math.min(
-                                                                (spendingByCategory.transportation / totalVariableSpending) * gap,
-                                                                spendingByCategory.transportation * 0.4
-                                                            );
-                                                            recommendations.push({
-                                                                category: 'Transportation',
-                                                                current: spendingByCategory.transportation,
-                                                                cut: cutAmount,
-                                                                tip: 'Carpool, public transit, combine errands'
-                                                            });
-                                                        }
-
-                                                        if (spendingByCategory.other > 0) {
-                                                            const cutAmount = Math.min(
-                                                                (spendingByCategory.other / totalVariableSpending) * gap,
-                                                                spendingByCategory.other * 0.4
-                                                            );
-                                                            recommendations.push({
-                                                                category: 'Other Variable Expenses',
-                                                                current: spendingByCategory.other,
-                                                                cut: cutAmount,
-                                                                tip: 'Review and reduce non-essential spending'
-                                                            });
-                                                        }
-
-                                                        return recommendations.map((rec, idx) => (
-                                                            <div key={idx} style={{
-                                                                marginBottom: idx < recommendations.length - 1 ? '10px' : '0',
-                                                                paddingLeft: '12px',
-                                                                borderLeft: '3px solid #ffc107'
-                                                            }}>
-                                                                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                                    <span style={{fontWeight: 600}}>{rec.category}</span>
-                                                                    <span style={{color: '#dc3545', fontWeight: 600}}>
-                                                                        -${rec.cut.toFixed(2)}
-                                                                    </span>
-                                                                </div>
-                                                                <p style={{fontSize: '12px', color: '#999', margin: '2px 0'}}>
-                                                                    Current: ${rec.current.toFixed(2)}/mo
-                                                                </p>
-                                                                <p style={{fontSize: '13px', color: '#666', margin: '4px 0 0 0'}}>
-                                                                    {rec.tip}
-                                                                </p>
-                                                            </div>
-                                                        ));
-                                                    })()}
-                                                </div>
-                                            </Card>
-
                                             <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
-                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Alternative Options</h4>
+                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Consider These Options Instead</h4>
                                                 <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
-                                                    <li>Side hustle or freelance work to boost income</li>
-                                                    <li>Extend timeline to 18-24 months</li>
-                                                    <li>Negotiate bills to reduce fixed expenses</li>
-                                                    <li>Refinance high-interest debts</li>
+                                                    <li><strong>Lower your target</strong> to a more realistic percentage using the slider above</li>
+                                                    <li><strong>Increase your income</strong> through a side hustle, freelance work, or raise</li>
+                                                    <li><strong>Extend your timeline</strong> to 18-24 months for more gradual growth</li>
+                                                    <li><strong>Reduce fixed expenses</strong> by negotiating bills or refinancing debts</li>
                                                 </ul>
                                             </Card>
                                         </>
