@@ -106,11 +106,11 @@ next_year = predictor.predict(n_periods=12)
 next_year = scaler.inverse_transform(next_year.reshape(-1, 1)).flatten()
 
 
-#user_percentage_choice = 0.60
+user_percentage_choice = 0.60
 
-#monthly_extra = user_percentage_choice
+monthly_extra = user_percentage_choice
 
-#intervention = np.arange(1, 13) * monthly_extra
+intervention = np.arange(1, 13) * monthly_extra
 
 
 next_months = pd.date_range(start=df.index[-1] + pd.offsets.MonthEnd(), periods=12, freq='ME')
