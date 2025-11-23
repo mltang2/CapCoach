@@ -16,7 +16,7 @@ function App() {
   const fetchCapcoachPrediction = useCallback(async (additionalSavings = 0) => {
     setCapcoachLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/predict', {
+      const response = await fetch('http://localhost:5001/api/financial/predict', {  // UPDATED endpoint
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

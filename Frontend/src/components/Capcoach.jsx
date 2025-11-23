@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import data from '../datasets/alex2Yirresponsible.json';
 import statementData from '../datasets/alex_irresponsible_statement.json';
 import { Card } from 'react-bootstrap';
+import AICoach from './AICoach';
 
 export default function Capcoach({ prediction, loading, fetchPrediction }) {
     const [userChoice, setUserChoice] = useState(null); // 'satisfied', 'higher', 'lower'
     const [targetGrowthPercent, setTargetGrowthPercent] = useState(null);
+    const [showCoach, setShowCoach] = useState(false);
+    const [coachPreferences, setCoachPreferences] = useState({ protectedCategories: [] });
+    const [coachReady, setCoachReady] = useState(false);
 
     const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
 
@@ -113,6 +117,14 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
             baselinePredicted
         };
     };
+
+    const calculation = useMemo(() => calculateSavingsForTarget(), [targetGrowthPercent, prediction]);
+
+    useEffect(() => {
+        if (userChoice === 'adjust' && calculation?.isAchievable && !coachReady && !showCoach) {
+            setShowCoach(true);
+        }
+    }, [userChoice, calculation, coachReady, showCoach]);
 
     const applyTargetSavings = () => {
         // No need to fetch - we calculate everything client-side
@@ -244,11 +256,11 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                 )}
 
                 {/* Adjust Target */}
-                {userChoice === 'adjust' && (
-                    <>
-                        <br/>
-                        <h3 style={{color: '#003E5C'}}>Adjust Your Net Worth Target</h3>
-                        <br/>
+        {userChoice === 'adjust' && (
+            <>
+                <br/>
+                <h3 style={{color: '#003E5C'}}>Adjust Your Net Worth Target</h3>
+                <br/>
                         <Card style={{ padding: '24px', marginBottom: '24px' }}>
                             <div>
                                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
@@ -342,101 +354,130 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                             </button>
                         </Card>
 
-                        {targetGrowthPercent !== null && (() => {
-                            const calculation = calculateSavingsForTarget();
-                            if (!calculation) return null;
-
-                            // If adjustment is 0 or negative, it's always achievable (reducing spending)
+                        {targetGrowthPercent !== null && calculation && (() => {
                             const isReducingTarget = targetGrowthPercent <= 0;
 
-                            return (
-                                <>
-                                    {isReducingTarget ? (
-                                        <>
-                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
-                                                <div style={{textAlign: 'center'}}>
-                                                    <h2 style={{color: '#856404', marginBottom: '16px'}}>Lower Target Selected</h2>
-                                                    <p style={{fontSize: '18px', color: '#856404', marginBottom: '12px'}}>
-                                                        Your adjusted target: {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
-                                                        {' '}({targetGrowthPercent}% adjustment)
-                                                    </p>
-                                                    <p style={{fontSize: '16px', color: '#856404'}}>
-                                                        This is {Math.abs(calculation.additionalSavingsNeeded).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}/month less than your baseline trajectory. You'll have more spending flexibility!
-                                                    </p>
-                                                </div>
-                                            </Card>
-                                            <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
-                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Enjoying Life While Building Wealth</h4>
-                                                <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
-                                                    <li>It's okay to prioritize current lifestyle and experiences</li>
-                                                    <li>You can still build wealth at a comfortable pace</li>
-                                                    <li>Consider allocating the extra funds to things that bring you joy</li>
-                                                    <li>Keep an eye on your spending to ensure you stay on track</li>
-                                                </ul>
-                                            </Card>
-                                        </>
-                                    ) : calculation.isAchievable ? (
-                                        <>
-                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
-                                                <div style={{textAlign: 'center'}}>
-                                                    <h2 style={{color: '#155724', marginBottom: '16px'}}>Goal is Achievable!</h2>
-                                                    <p style={{fontSize: '18px', color: '#155724', marginBottom: '8px'}}>
-                                                        To reach {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} in 12 months
-                                                    </p>
-                                                    <p style={{fontSize: '14px', color: '#155724'}}>
-                                                        ({targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}% from baseline: {calculation.baselinePredicted.toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
-                                                    </p>
-                                                </div>
-                                            </Card>
-
-                                            <div className="dashboard-cards">
-                                                <Card>
-                                                    <div style={{margin: "10px", textAlign: 'center'}}>
-                                                        <p style={{fontWeight: 600, color: '#666'}}>Additional Savings/Month</p>
-                                                        <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
-                                                            ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}
-                                                        </p>
-                                                    </div>
-                                                </Card>
-                                                <Card>
-                                                    <div style={{margin: "10px", textAlign: 'center'}}>
-                                                        <p style={{fontWeight: 600, color: '#666'}}>% of Income</p>
-                                                        <p style={{fontSize: "32px", color: '#003E5C', fontWeight: 700}}>
-                                                            {calculation.percentageOfIncome.toFixed(1)}%
-                                                        </p>
-                                                    </div>
-                                                </Card>
-                                                <Card>
-                                                    <div style={{margin: "10px", textAlign: 'center'}}>
-                                                        <p style={{fontWeight: 600, color: '#666'}}>Target Net Worth</p>
-                                                        <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
-                                                            ${calculation.targetNetWorth.toLocaleString('en-US', {minimumFractionDigits: 2})}
-                                                        </p>
-                                                    </div>
-                                                </Card>
+                            if (isReducingTarget) {
+                                return (
+                                    <>
+                                        <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
+                                            <div style={{textAlign: 'center'}}>
+                                                <h2 style={{color: '#856404', marginBottom: '16px'}}>Lower Target Selected</h2>
+                                                <p style={{fontSize: '18px', color: '#856404', marginBottom: '12px'}}>
+                                                    Your adjusted target: {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
+                                                    {' '}({targetGrowthPercent}% adjustment)
+                                                </p>
+                                                <p style={{fontSize: '16px', color: '#856404'}}>
+                                                    This is {Math.abs(calculation.additionalSavingsNeeded).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}/month less than your baseline trajectory. You'll have more spending flexibility!
+                                                </p>
                                             </div>
-                                            {calculation.additionalSavingsNeeded > 0.01 && (
-                                                <>
-                                                    <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
-                                                        <p style={{color: '#004879', marginBottom: '8px'}}>
-                                                            Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
-                                                        </p>
-                                                    </Card>
+                                        </Card>
+                                        <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
+                                            <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Enjoying Life While Building Wealth</h4>
+                                            <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
+                                                <li>It's okay to prioritize current lifestyle and experiences</li>
+                                                <li>You can still build wealth at a comfortable pace</li>
+                                                <li>Consider allocating the extra funds to things that bring you joy</li>
+                                                <li>Keep an eye on your spending to ensure you stay on track</li>
+                                            </ul>
+                                        </Card>
+                                    </>
+                                );
+                            }
 
+                            if (calculation.isAchievable) {
+                                return (
+                                    <>
+                                        <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
+                                            <div style={{textAlign: 'center'}}>
+                                                <h2 style={{color: '#155724', marginBottom: '16px'}}>Goal is Achievable!</h2>
+                                                <p style={{fontSize: '18px', color: '#155724', marginBottom: '8px'}}>
+                                                    To reach {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} in 12 months
+                                                </p>
+                                                <p style={{fontSize: '14px', color: '#155724'}}>
+                                                    ({targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}% from baseline: {calculation.baselinePredicted.toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
+                                                </p>
+                                            </div>
+                                        </Card>
+
+                                        <div className="dashboard-cards">
+                                            <Card>
+                                                <div style={{margin: "10px", textAlign: 'center'}}>
+                                                    <p style={{fontWeight: 600, color: '#666'}}>Additional Savings/Month</p>
+                                                    <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
+                                                        ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                            <Card>
+                                                <div style={{margin: "10px", textAlign: 'center'}}>
+                                                    <p style={{fontWeight: 600, color: '#666'}}>% of Income</p>
+                                                    <p style={{fontSize: "32px", color: '#003E5C', fontWeight: 700}}>
+                                                        {calculation.percentageOfIncome.toFixed(1)}%
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                            <Card>
+                                                <div style={{margin: "10px", textAlign: 'center'}}>
+                                                    <p style={{fontWeight: 600, color: '#666'}}>Target Net Worth</p>
+                                                    <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
+                                                        ${calculation.targetNetWorth.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                        </div>
+                                        {calculation.additionalSavingsNeeded > 0.01 && (
+                                            <>
+                                                <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
+                                                    <p style={{color: '#004879', marginBottom: '8px'}}>
+                                                        Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
+                                                    </p>
+                                                </Card>
+
+                                                {!coachReady && (
+                                                    <Card style={{ padding: '20px', backgroundColor: '#fff8e1', border: '1px solid #ffe8a1', marginTop: '16px' }}>
+                                                        <h4 style={{color: '#856404', marginBottom: '12px'}}>Let AI Coach Personalize This</h4>
+                                                        <p style={{color: '#856404', marginBottom: '12px'}}>
+                                                            We opened the AI Coach to learn your priorities. Chat for a moment so we can tailor which categories to cut or protect.
+                                                        </p>
+                                                        <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                                                            <button
+                                                                onClick={() => setShowCoach(true)}
+                                                                style={{
+                                                                    padding: '10px 18px',
+                                                                    backgroundColor: '#003E5C',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    fontWeight: 700,
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                Open AI Coach
+                                                            </button>
+                                                            <span style={{color: '#856404', fontSize: '13px'}}>Once the coach learns your preferences, personalized cuts will appear here.</span>
+                                                        </div>
+                                                    </Card>
+                                                )}
+
+                                                {coachReady && (
                                                     <Card style={{ padding: '20px', backgroundColor: '#fff3cd', border: '1px solid #ffc107', marginTop: '16px' }}>
                                                         <h4 style={{color: '#856404', marginBottom: '16px'}}>Ways to Bridge the Gap</h4>
                                                         <p style={{color: '#856404', marginBottom: '16px'}}>
                                                             Here's how to save an additional <strong>${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong>:
                                                         </p>
 
+                                                        {coachPreferences.protectedCategories?.length > 0 && (
+                                                            <div style={{marginBottom: '12px', padding: '10px 12px', backgroundColor: '#e7f3ff', borderRadius: '8px', border: '1px solid #b3d9ff', color: '#003E5C'}}>
+                                                                AI Coach priorities applied: protecting {coachPreferences.protectedCategories.join(', ')} when suggesting cuts.
+                                                            </div>
+                                                        )}
+
                                                         <div style={{backgroundColor: 'white', padding: '16px', borderRadius: '8px'}}>
                                                             <h5 style={{color: '#003E5C', marginBottom: '12px'}}>Recommended Spending Adjustments:</h5>
 
                                                             {(() => {
                                                                 const gap = calculation.additionalSavingsNeeded;
-                                                                const totalVariableSpending = Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0);
-
-                                                                // Two-pass algorithm to ensure cuts sum to exactly the gap
                                                                 const categories = [];
 
                                                                 if (spendingByCategory.dining > 0) {
@@ -444,6 +485,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                         category: 'Dining & Restaurants',
                                                                         current: spendingByCategory.dining,
                                                                         maxCap: 0.5,
+                                                                        key: 'dining',
                                                                         tip: 'Cook at home more, limit takeout to 2-3 times/week'
                                                                     });
                                                                 }
@@ -454,6 +496,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                         category: 'Shopping & Entertainment',
                                                                         current: totalShopEnt,
                                                                         maxCap: 0.5,
+                                                                        key: 'entertainment',
                                                                         tip: 'Limit impulse purchases, use 24-hour rule'
                                                                     });
                                                                 }
@@ -463,6 +506,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                         category: 'Transportation',
                                                                         current: spendingByCategory.transportation,
                                                                         maxCap: 0.4,
+                                                                        key: 'transportation',
                                                                         tip: 'Carpool, public transit, combine errands'
                                                                     });
                                                                 }
@@ -472,52 +516,66 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                         category: 'Other Variable Expenses',
                                                                         current: spendingByCategory.other,
                                                                         maxCap: 0.4,
+                                                                        key: 'other',
                                                                         tip: 'Review and reduce non-essential spending'
                                                                     });
                                                                 }
 
-                                                                // First pass: calculate proportional cuts with caps
-                                                                const recommendations = categories.map(cat => {
-                                                                    const proportionalCut = (cat.current / totalVariableSpending) * gap;
-                                                                    const maxCut = cat.current * cat.maxCap;
-                                                                    const actualCut = Math.min(proportionalCut, maxCut);
+                                                                const protectedCategories = coachPreferences.protectedCategories || [];
 
+                                                                // Build weighted allocations respecting user priorities and caps
+                                                                const recommendations = categories.map(cat => {
+                                                                    const priorityProtected = protectedCategories.includes(cat.key);
+                                                                    const capAdjustment = priorityProtected ? 0.6 : 1; // protected categories cut less
+                                                                    const maxCut = cat.current * (cat.maxCap * capAdjustment);
+                                                                    const weight = cat.current * (priorityProtected ? 0.6 : 1.3); // non-protected carry more weight
                                                                     return {
                                                                         ...cat,
-                                                                        cut: actualCut,
-                                                                        hitCap: proportionalCut > maxCut,
-                                                                        availableRoom: maxCut - actualCut
+                                                                        priorityProtected,
+                                                                        maxCut,
+                                                                        weight,
+                                                                        cut: 0
                                                                     };
                                                                 });
 
-                                                                // Calculate shortfall
-                                                                const totalCuts = recommendations.reduce((sum, rec) => sum + rec.cut, 0);
-                                                                const shortfall = gap - totalCuts;
+                                                                const totalCapacity = recommendations.reduce((sum, rec) => sum + rec.maxCut, 0);
+                                                                const target = Math.min(gap, totalCapacity);
 
-                                                                // Second pass: distribute shortfall to categories that haven't hit caps
-                                                                if (shortfall > 0.01) {
-                                                                    const uncappedCategories = recommendations.filter(rec => !rec.hitCap && rec.availableRoom > 0);
+                                                                // Initial proportional allocation
+                                                                const totalWeight = recommendations.reduce((sum, rec) => sum + rec.weight, 0) || 1;
+                                                                recommendations.forEach(rec => {
+                                                                    const ideal = (rec.weight / totalWeight) * target;
+                                                                    rec.cut = Math.min(rec.maxCut, ideal);
+                                                                });
 
-                                                                    if (uncappedCategories.length > 0) {
-                                                                        const totalAvailableRoom = uncappedCategories.reduce((sum, rec) => sum + rec.availableRoom, 0);
-
-                                                                        uncappedCategories.forEach(rec => {
-                                                                            const additionalCut = Math.min(
-                                                                                (rec.availableRoom / totalAvailableRoom) * shortfall,
-                                                                                rec.availableRoom
-                                                                            );
-                                                                            rec.cut += additionalCut;
-                                                                        });
-                                                                    }
+                                                                // Distribute any remaining to categories with room, preferring non-protected
+                                                                let remaining = target - recommendations.reduce((sum, rec) => sum + rec.cut, 0);
+                                                                let guard = 0;
+                                                                while (remaining > 0.01 && guard < 10) {
+                                                                    const withRoom = recommendations.filter(rec => rec.cut < rec.maxCut - 0.001);
+                                                                    if (!withRoom.length) break;
+                                                                    const totalRoomWeight = withRoom.reduce((sum, rec) => {
+                                                                        const room = rec.maxCut - rec.cut;
+                                                                        const bias = rec.priorityProtected ? 0.5 : 1.5;
+                                                                        return sum + room * bias;
+                                                                    }, 0) || 1;
+                                                                    withRoom.forEach(rec => {
+                                                                        const room = rec.maxCut - rec.cut;
+                                                                        const bias = rec.priorityProtected ? 0.5 : 1.5;
+                                                                        const add = Math.min(room, (room * bias / totalRoomWeight) * remaining);
+                                                                        rec.cut += add;
+                                                                    });
+                                                                    remaining = target - recommendations.reduce((sum, rec) => sum + rec.cut, 0);
+                                                                    guard += 1;
                                                                 }
 
-                                                                // Calculate final total
                                                                 const finalTotal = recommendations.reduce((sum, rec) => sum + rec.cut, 0);
+                                                                const shortfall = gap - finalTotal;
 
                                                                 return (
                                                                     <>
                                                                         {recommendations.map((rec, idx) => (
-                                                                            <div key={idx} style={{
+                                                                        <div key={idx} style={{
                                                                                 marginBottom: '10px',
                                                                                 paddingLeft: '12px',
                                                                                 borderLeft: '3px solid #ffc107'
@@ -534,6 +592,11 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                                 <p style={{fontSize: '13px', color: '#666', margin: '4px 0 0 0'}}>
                                                                                     {rec.tip}
                                                                                 </p>
+                                                                                {rec.priorityProtected && (
+                                                                                    <p style={{fontSize: '12px', color: '#003E5C', margin: '4px 0 0 0', fontWeight: 600}}>
+                                                                                        AI Coach is limiting cuts here based on your preferences.
+                                                                                    </p>
+                                                                                )}
                                                                             </div>
                                                                         ))}
                                                                         <div style={{
@@ -547,47 +610,54 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                         }}>
                                                                             <span>Total Monthly Savings:</span>
                                                                             <span style={{color: '#28a745'}}>
-                                                                                +${finalTotal.toFixed(2)}
+                                                                                +${finalTotal.toFixed(2)}{shortfall > 0.01 ? ` (target $${gap.toFixed(2)})` : ''}
                                                                             </span>
                                                                         </div>
+                                                                        {shortfall > 0.01 && (
+                                                                            <p style={{marginTop: '8px', fontSize: '12px', color: '#721c24'}}>
+                                                                                Based on your priorities, we can reach ${finalTotal.toFixed(2)}/mo; gap remaining: ${shortfall.toFixed(2)}.
+                                                                            </p>
+                                                                        )}
                                                                     </>
                                                                 );
                                                             })()}
                                                         </div>
                                                     </Card>
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb' }}>
-                                                <div style={{textAlign: 'center'}}>
-                                                    <h2 style={{color: '#721c24', marginBottom: '16px'}}>Goal Exceeds Maximum Capacity</h2>
-                                                    <p style={{fontSize: '16px', color: '#721c24', marginBottom: '12px'}}>
-                                                        This target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month in additional savings,
-                                                        but your maximum capacity (after essential expenses) is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month.
-                                                    </p>
-                                                    <p style={{fontSize: '16px', color: '#721c24', marginBottom: '8px'}}>
-                                                        You would need to reduce spending by an additional <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your variable expenses.
-                                                    </p>
-                                                    <p style={{fontSize: '14px', color: '#721c24'}}>
-                                                        Maximum achievable adjustment: <strong>{calculation.maxAdjustmentPercent.toFixed(1)}%</strong>
-                                                        ({(calculation.baselinePredicted + calculation.maxAdditionalGrowth).toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
-                                                    </p>
-                                                </div>
-                                            </Card>
+                                                )}
+                                            </>
+                                        )}
+                                    </>
+                                );
+                            }
 
-                                            <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
-                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Consider These Options Instead</h4>
-                                                <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
-                                                    <li><strong>Lower your target</strong> to a more realistic percentage using the slider above</li>
-                                                    <li><strong>Increase your income</strong> through a side hustle, freelance work, or raise</li>
-                                                    <li><strong>Extend your timeline</strong> to 18-24 months for more gradual growth</li>
-                                                    <li><strong>Reduce fixed expenses</strong> by negotiating bills or refinancing debts</li>
-                                                </ul>
-                                            </Card>
-                                        </>
-                                    )}
+                            return (
+                                <>
+                                    <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb' }}>
+                                        <div style={{textAlign: 'center'}}>
+                                            <h2 style={{color: '#721c24', marginBottom: '16px'}}>Goal Exceeds Maximum Capacity</h2>
+                                            <p style={{fontSize: '16px', color: '#721c24', marginBottom: '12px'}}>
+                                                This target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month in additional savings,
+                                                but your maximum capacity (after essential expenses) is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month.
+                                            </p>
+                                            <p style={{fontSize: '16px', color: '#721c24', marginBottom: '8px'}}>
+                                                You would need to reduce spending by an additional <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your variable expenses.
+                                            </p>
+                                            <p style={{fontSize: '14px', color: '#721c24'}}>
+                                                Maximum achievable adjustment: <strong>{calculation.maxAdjustmentPercent.toFixed(1)}%</strong>
+                                                ({(calculation.baselinePredicted + calculation.maxAdditionalGrowth).toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
+                                            </p>
+                                        </div>
+                                    </Card>
+
+                                    <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
+                                        <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Consider These Options Instead</h4>
+                                        <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
+                                            <li><strong>Lower your target</strong> to a more realistic percentage using the slider above</li>
+                                            <li><strong>Increase your income</strong> through a side hustle, freelance work, or raise</li>
+                                            <li><strong>Extend your timeline</strong> to 18-24 months for more gradual growth</li>
+                                            <li><strong>Reduce fixed expenses</strong> by negotiating bills or refinancing debts</li>
+                                        </ul>
+                                    </Card>
                                 </>
                             );
                         })()}
@@ -601,6 +671,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                             onClick={() => {
                                 setUserChoice(null);
                                 setTargetGrowthPercent(null);
+                                setCoachReady(false);
                                 fetchPrediction(0);
                             }}
                             style={{
@@ -618,6 +689,61 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                     </>
                 )}
             </>
+        )}
+
+        <button
+            onClick={() => setShowCoach(true)}
+            style={{
+                position: 'fixed',
+                bottom: '24px',
+                right: '24px',
+                backgroundColor: '#003E5C',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50px',
+                padding: '12px 18px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+                fontWeight: 700,
+                cursor: 'pointer',
+                zIndex: 1200
+            }}
+            aria-label="Open AI Coach"
+        >
+            💬 AI Coach
+        </button>
+
+        {showCoach && (
+            <div
+                onClick={() => setShowCoach(false)}
+                style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end',
+                    padding: '20px',
+                    zIndex: 1300
+                }}>
+                <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        position: 'relative',
+                    width: 'min(520px, 95vw)',
+                    height: 'min(80vh, 760px)',
+                    backgroundColor: '#f4f6f9',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                    overflow: 'auto'
+                }}>
+                    <AICoach
+                        embedded
+                        onClose={() => setShowCoach(false)}
+                        onPreferencesChange={(prefs) => setCoachPreferences(prefs)}
+                        onReady={() => setCoachReady(true)}
+                    />
+                </div>
+            </div>
         )}
     </div>
 }

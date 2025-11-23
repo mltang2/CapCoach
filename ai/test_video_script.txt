@@ -1,0 +1,52 @@
+🎬 CAPcoach Budgeting Video Script
+==================================================
+
+Title: Personalized Budgeting Guide for there
+Target Pattern: anxiety
+Video Theme: Managing Financial Anxiety
+Total Duration: 38 seconds
+
+Video Content:
+
+Scene 1: Understanding Your Pattern
+Duration: 5s
+Content: Based on our conversation, you show tendencies toward anxiety. This is common and manageable!
+----------------------------------------
+
+Scene 2: Managing Financial Anxiety
+Duration: 4s
+Content: Here are practical strategies that work for your situation:
+----------------------------------------
+
+Scene 3: Tip 1: Start Small
+Duration: 6s
+Content: Practice breathing exercises before money tasks
+----------------------------------------
+
+Scene 4: Tip 2: Build Systems
+Duration: 6s
+Content: Set specific 'worry time' for financial concerns
+----------------------------------------
+
+Scene 5: Tip 3: Mindset Shift
+Duration: 6s
+Content: Create a safety net with emergency savings
+----------------------------------------
+
+Scene 6: Tip 4: Long-term Strategy
+Duration: 6s
+Content: Focus on what you can control, not market fluctuations
+----------------------------------------
+
+Scene 7: You've Got This!
+Duration: 5s
+Content: Remember: Progress over perfection. Small consistent steps lead to big financial changes.
+----------------------------------------
+
+🎯 Personalized Budgeting Tips:
+• Practice breathing exercises before money tasks
+• Set specific 'worry time' for financial concerns
+• Create a safety net with emergency savings
+• Focus on what you can control, not market fluctuations
+
+[Video would be generated as: test_video.mp4]
