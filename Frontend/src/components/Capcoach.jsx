@@ -524,7 +524,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                             }}>
                                                                                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                                                                                     <span style={{fontWeight: 600}}>{rec.category}</span>
-                                                                                    <span style={{color: '#dc3545', fontWeight: 600}}>
+                                                                                    <span style={{color: '#28a745', fontWeight: 600}}>
                                                                                         -${rec.cut.toFixed(2)}
                                                                                     </span>
                                                                                 </div>
@@ -546,8 +546,8 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                                             fontSize: '16px'
                                                                         }}>
                                                                             <span>Total Monthly Savings:</span>
-                                                                            <span style={{color: '#dc3545'}}>
-                                                                                -${finalTotal.toFixed(2)}
+                                                                            <span style={{color: '#28a745'}}>
+                                                                                +${finalTotal.toFixed(2)}
                                                                             </span>
                                                                         </div>
                                                                     </>
