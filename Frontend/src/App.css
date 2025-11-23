@@ -96,7 +96,7 @@ body {
   font-size: 20px;
   cursor: pointer;
   margin-bottom: 12px;
-  color: #003E5C
+  color: #003E5C;
 }
 
 .nav-closed .nav-open-btn {
@@ -134,5 +134,10 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   width: 100%;
-  box-shadow: 5px 10px 7px 10px white;
+}
+
+.dashboard-cards .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }

@@ -5,10 +5,16 @@ import Checking from './components/Checking'
 import Savings from './components/Savings'
 import Capcoach from './components/Capcoach'
 import { useState } from 'react'
+import data from './datasets/alex2Ystable.json'
 
 function App() {
   const [navOpen, setNavOpen] = useState(true);
   const toggleNav = () => setNavOpen((open) => !open);
+
+  // Get the latest month's data (month 24)
+  const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
+  const accountTotal = latestMonth.balance_sheet_snapshot.liquid_assets.savings_account + latestMonth.balance_sheet_snapshot.liquid_assets.checking_account;
+  const accountTotalFormatted = accountTotal.toLocaleString('en-US');
 
   return <HashRouter>
     <div className={`layout ${navOpen ? 'nav-open' : 'nav-closed'}`}>
@@ -22,7 +28,7 @@ function App() {
           <NavLink to="/capcoach" className="nav-link">CapCoach</NavLink>
         </nav>
         <hr/>
-        <h2 className="summary" style={{fontSize: "20px"}}>Total Balance: $17,192.12</h2>
+        <h2 className="summary" style={{fontSize: "20px"}}>Total Balance: ${accountTotalFormatted}</h2>
       </aside>
       <main className="content">
         <button className="nav-open-btn" onClick={toggleNav} aria-label="Open navigation">☰</button>
