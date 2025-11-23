@@ -1,5 +1,5 @@
-import data from '../datasets/alex2Yrisky.json';
-import statementData from '../datasets/alex_risky_statement.json';
+import data from '../datasets/alex2Ystable.json';
+import statementData from '../datasets/alex_stable_statement.json';
 import { Card } from 'react-bootstrap';
 
 export default function Savings(props) {

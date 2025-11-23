@@ -141,3 +141,19 @@ h2 {
   border: none;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.loading-spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid #e0f2f7;
+  border-top-color: #003E5C;
+  border-radius: 50%;
+  margin: 16px auto 0;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

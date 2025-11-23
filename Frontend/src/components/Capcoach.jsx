@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import data from '../datasets/alex2Yrisky.json';
-import statementData from '../datasets/alex_risky_statement.json';
+import { useState } from 'react';
+import data from '../datasets/alex2Ystable.json';
+import statementData from '../datasets/alex_stable_statement.json';
 import { Card } from 'react-bootstrap';
 
-export default function Capcoach(props) {
-    const [prediction, setPrediction] = useState(null);
-    const [loading, setLoading] = useState(false);
+export default function Capcoach({ prediction, loading, fetchPrediction }) {
     const [userChoice, setUserChoice] = useState(null); // 'satisfied', 'higher', 'lower'
     const [targetGrowthPercent, setTargetGrowthPercent] = useState(null);
 
@@ -60,32 +58,6 @@ export default function Capcoach(props) {
     };
 
     const spendingByCategory = calculateSpendingByCategory();
-
-    // Initial prediction on mount
-    useEffect(() => {
-        fetchPrediction(0);
-    }, []);
-
-    const fetchPrediction = async (additionalSavings) => {
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:5001/api/predict', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    additional_monthly_savings: additionalSavings
-                })
-            });
-            const data = await response.json();
-            setPrediction(data);
-        } catch (error) {
-            console.error('Error fetching prediction:', error);
-            alert('Error connecting to backend. Please make sure the Flask server is running on port 5001.');
-        }
-        setLoading(false);
-    };
 
     const handleUserChoice = (choice) => {
         setUserChoice(choice);
@@ -144,9 +116,10 @@ export default function Capcoach(props) {
         <br/>
 
         {loading && (
-            <Card style={{ padding: '40px', textAlign: 'center' }}>
+            <Card style={{ padding: '40px', textAlign: 'center', boxShadow:"0 1px 3px rgba(0, 0, 0, 0.15)", border: "none" }}>
                 <h3 style={{color: '#003E5C'}}>Loading AI Predictions...</h3>
                 <p style={{color: '#666'}}>Analyzing your financial data with machine learning...</p>
+                <div className="loading-spinner" role="status" aria-label="Loading predictions"></div>
             </Card>
         )}
 
@@ -211,7 +184,7 @@ export default function Capcoach(props) {
                                         minWidth: '200px'
                                     }}
                                 >
-                                    ✓ Yes, I'm satisfied
+                                    Yes, I'm satisfied
                                 </button>
                                 <button
                                     onClick={() => handleUserChoice('adjust')}
@@ -227,7 +200,7 @@ export default function Capcoach(props) {
                                         minWidth: '200px'
                                     }}
                                 >
-                                    ✎ No, I want to adjust it
+                                    No, I want to adjust it
                                 </button>
                             </div>
                         </Card>
@@ -240,7 +213,7 @@ export default function Capcoach(props) {
                         <br/>
                         <Card style={{ padding: '30px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
                             <div style={{textAlign: 'center'}}>
-                                <h2 style={{color: '#155724', marginBottom: '16px'}}>✓ Great! Keep up the good work!</h2>
+                                <h2 style={{color: '#155724', marginBottom: '16px'}}>Great! Keep up the good work!</h2>
                                 <p style={{fontSize: '18px', color: '#155724', lineHeight: '1.6'}}>
                                     Based on your current spending and saving habits, you're on track to grow your net worth by{' '}
                                     <strong>${Math.abs(prediction.net_worth_growth).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>{' '}
@@ -250,7 +223,7 @@ export default function Capcoach(props) {
                         </Card>
                         <br/>
                         <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
-                            <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Tips to Stay on Track</h4>
+                            <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Tips to Stay on Track</h4>
                             <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
                                 <li>Continue your current saving habits</li>
                                 <li>Review your budget monthly to catch any overspending early</li>
@@ -342,7 +315,7 @@ export default function Capcoach(props) {
                                                 </div>
                                             </Card>
                                             <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
-                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Enjoying Life While Building Wealth</h4>
+                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Enjoying Life While Building Wealth</h4>
                                                 <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
                                                     <li>It's okay to prioritize current lifestyle and experiences</li>
                                                     <li>You can still build wealth at a comfortable pace</li>
@@ -355,7 +328,7 @@ export default function Capcoach(props) {
                                         <>
                                             <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
                                                 <div style={{textAlign: 'center'}}>
-                                                    <h2 style={{color: '#155724', marginBottom: '16px'}}>✓ Goal is Achievable!</h2>
+                                                    <h2 style={{color: '#155724', marginBottom: '16px'}}>Goal is Achievable!</h2>
                                                     <p style={{fontSize: '18px', color: '#155724', marginBottom: '8px'}}>
                                                         To reach {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} in 12 months
                                                     </p>
@@ -394,7 +367,7 @@ export default function Capcoach(props) {
                                             {calculation.additionalSavingsNeeded > 100 && (
                                                 <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
                                                     <p style={{color: '#004879', marginBottom: '8px'}}>
-                                                        💰 Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
+                                                        Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
                                                     </p>
                                                 </Card>
                                             )}
@@ -403,7 +376,7 @@ export default function Capcoach(props) {
                                         <>
                                             <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb' }}>
                                                 <div style={{textAlign: 'center'}}>
-                                                    <h2 style={{color: '#721c24', marginBottom: '16px'}}>⚠ Goal Exceeds Maximum Capacity</h2>
+                                                    <h2 style={{color: '#721c24', marginBottom: '16px'}}>Goal Exceeds Maximum Capacity</h2>
                                                     <p style={{fontSize: '16px', color: '#721c24', marginBottom: '12px'}}>
                                                         Target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month additional savings,
                                                         but max capacity is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month
@@ -416,7 +389,7 @@ export default function Capcoach(props) {
                                             </Card>
 
                                             <Card style={{ padding: '20px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
-                                                <h4 style={{color: '#856404', marginBottom: '16px'}}>💰 Ways to Bridge the Gap</h4>
+                                                <h4 style={{color: '#856404', marginBottom: '16px'}}>Ways to Bridge the Gap</h4>
                                                 <p style={{color: '#856404', marginBottom: '16px'}}>
                                                     Reduce spending by <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong>:
                                                 </p>
@@ -437,7 +410,6 @@ export default function Capcoach(props) {
                                                                 spendingByCategory.dining * 0.5 // Max 50% cut
                                                             );
                                                             recommendations.push({
-                                                                icon: '🍽️',
                                                                 category: 'Dining & Restaurants',
                                                                 current: spendingByCategory.dining,
                                                                 cut: cutAmount,
@@ -452,7 +424,6 @@ export default function Capcoach(props) {
                                                                 totalShopEnt * 0.5
                                                             );
                                                             recommendations.push({
-                                                                icon: '🛍️',
                                                                 category: 'Shopping & Entertainment',
                                                                 current: totalShopEnt,
                                                                 cut: cutAmount,
@@ -466,7 +437,6 @@ export default function Capcoach(props) {
                                                                 spendingByCategory.transportation * 0.4
                                                             );
                                                             recommendations.push({
-                                                                icon: '🚗',
                                                                 category: 'Transportation',
                                                                 current: spendingByCategory.transportation,
                                                                 cut: cutAmount,
@@ -480,7 +450,6 @@ export default function Capcoach(props) {
                                                                 spendingByCategory.other * 0.4
                                                             );
                                                             recommendations.push({
-                                                                icon: '💳',
                                                                 category: 'Other Variable Expenses',
                                                                 current: spendingByCategory.other,
                                                                 cut: cutAmount,
@@ -495,7 +464,7 @@ export default function Capcoach(props) {
                                                                 borderLeft: '3px solid #ffc107'
                                                             }}>
                                                                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                                                                    <span style={{fontWeight: 600}}>{rec.icon} {rec.category}</span>
+                                                                    <span style={{fontWeight: 600}}>{rec.category}</span>
                                                                     <span style={{color: '#dc3545', fontWeight: 600}}>
                                                                         -${rec.cut.toFixed(2)}
                                                                     </span>
@@ -513,7 +482,7 @@ export default function Capcoach(props) {
                                             </Card>
 
                                             <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
-                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Alternative Options</h4>
+                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>Alternative Options</h4>
                                                 <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
                                                     <li>Side hustle or freelance work to boost income</li>
                                                     <li>Extend timeline to 18-24 months</li>
@@ -548,7 +517,7 @@ export default function Capcoach(props) {
                                 cursor: 'pointer'
                             }}
                         >
-                            ← Start Over
+                            Start Over
                         </button>
                     </>
                 )}

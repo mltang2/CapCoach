@@ -4,12 +4,40 @@ import Dashboard from './components/Dashboard'
 import Checking from './components/Checking'
 import Savings from './components/Savings'
 import Capcoach from './components/Capcoach'
-import { useState } from 'react'
-import data from './datasets/alex2Yrisky.json'
+import { useCallback, useEffect, useState } from 'react'
+import data from './datasets/alex2Ystable.json'
 
 function App() {
   const [navOpen, setNavOpen] = useState(true);
+  const [capcoachPrediction, setCapcoachPrediction] = useState(null);
+  const [capcoachLoading, setCapcoachLoading] = useState(false);
   const toggleNav = () => setNavOpen((open) => !open);
+
+  const fetchCapcoachPrediction = useCallback(async (additionalSavings = 0) => {
+    setCapcoachLoading(true);
+    try {
+      const response = await fetch('http://localhost:5001/api/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          additional_monthly_savings: additionalSavings
+        })
+      });
+      const payload = await response.json();
+      setCapcoachPrediction(payload);
+    } catch (error) {
+      console.error('Error fetching prediction:', error);
+      alert('Error connecting to backend. Please make sure the Flask server is running on port 5001.');
+    }
+    setCapcoachLoading(false);
+  }, []);
+
+  // Warm the CapCoach prediction as soon as the app loads and keep it cached while navigating.
+  useEffect(() => {
+    fetchCapcoachPrediction(0);
+  }, [fetchCapcoachPrediction]);
 
   // Get the latest month's data (month 24)
   const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
@@ -36,7 +64,13 @@ function App() {
           <Route path='/' element={<Dashboard/>}></Route>
           <Route path='/checking' element={<Checking/>}></Route>
           <Route path='/savings' element={<Savings/>}></Route>
-          <Route path='/capcoach' element={<Capcoach/>}></Route>
+          <Route path='/capcoach' element={
+            <Capcoach
+              prediction={capcoachPrediction}
+              loading={capcoachLoading}
+              fetchPrediction={fetchCapcoachPrediction}
+            />
+          }></Route>
         </Routes>
       </main>
     </div>
