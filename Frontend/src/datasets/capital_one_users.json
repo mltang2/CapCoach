@@ -1,0 +1,121 @@
+{
+  "users": [
+    {
+      "user_id": "U001",
+      "personal_info": {
+        "age": 27,
+        "marital_status": "single",
+        "residential_city": "San Francisco",
+        "state": "CA",
+        "zip_code": "94110",
+        "primary_account_holder_since": "2019-06-14"
+      },
+      "income_and_employment": {
+        "estimated_monthly_net_income": 7200,
+        "income_source_deposits": [
+          {
+            "employer_name": "TechNova Inc.",
+            "deposit_amount": 3600,
+            "deposit_frequency": "biweekly"
+          }
+        ],
+        "side_income_deposits": []
+      },
+      "accounts": {
+        "checking": {
+          "balance": 3549.12,
+          "overdraft_protection_enabled": true
+        },
+        "savings": {
+          "balance": 12238.98,
+          "automatic_transfer_amount": 600,
+          "transfer_frequency": "monthly"
+        },
+        "credit_cards": [
+          {
+            "issuer": "Capital One",
+            "product": "Quicksilver",
+            "credit_limit": 6500,
+            "current_balance": 1800,
+            "minimum_payment_due": 45,
+            "due_date": "2025-02-12",
+            "apr": 21.4,
+            "reward_type": "cash_back",
+            "late_payments_last_24m": 0
+          }
+        ],
+        "loans": [
+          {
+            "type": "student_loan",
+            "servicer": "Navient",
+            "outstanding_principal": 21000,
+            "interest_rate": 4.5,
+            "monthly_payment": 250
+          },
+          {
+            "type": "auto_loan",
+            "servicer": "Chase Auto",
+            "outstanding_principal": 9500,
+            "interest_rate": 3.7,
+            "monthly_payment": 290
+          }
+        ],
+        "investment_accounts": [
+          {
+            "institution": "Vanguard",
+            "type": "brokerage",
+            "current_balance": 14000
+          },
+          {
+            "institution": "Fidelity",
+            "type": "401k",
+            "current_balance": 28000
+          }
+        ]
+      },
+      "spending_history": {
+        "fixed_recurring_payments": [
+          {
+            "merchant": "Lighthouse Apartments",
+            "category": "rent",
+            "amount": 2800,
+            "billing_day": 1
+          },
+          {
+            "merchant": "Verizon",
+            "category": "utilities_internet_phone",
+            "amount": 140,
+            "billing_day": 7
+          }
+        ],
+        "recent_transactions_90d": [
+          {
+            "merchant": "Trader Joe's",
+            "category": "groceries",
+            "amount": 115,
+            "timestamp": "2025-01-22"
+          },
+          {
+            "merchant": "Uber",
+            "category": "transportation",
+            "amount": 23,
+            "timestamp": "2025-01-20"
+          }
+        ]
+      },
+      "credit_profile": {
+        "credit_score_range": "740-760",
+        "total_open_accounts": 7,
+        "credit_utilization_percent": 28,
+        "inquiries_last_12m": 1,
+        "oldest_account_age_years": 9
+      },
+      "goals_observed": {
+        "patterns": [
+          "consistent_savings_transfers",
+          "down_payment_saving_behavior"
+        ]
+      }
+    }
+  ]
+}
