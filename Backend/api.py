@@ -1,10 +1,13 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import numpy as np
 import json
 from sklearn.preprocessing import StandardScaler
 from pmdarima import auto_arima
-import matplotlib.pyplot as plt
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for React frontend
 
 ############################################   Risk Calculation  #######################################################
 
@@ -48,12 +51,12 @@ def calc_risk(df):
 
 ############################################   Model Building  #########################################################
 
-def user_df_gen():
-    with open("alex2Yrisky.json", 'r') as fp:
+def user_df_gen(json_path="alex2Yrisky.json"):
+    with open(json_path, 'r') as fp:
         data = json.load(fp)
     month_data = data['monthly_financial_history']
 
-    # Sort 12 month data into a Pandas DataFrame
+    # Sort 24 month data into a Pandas DataFrame
     user_data_year = pd.DataFrame(
         columns=['month', 'income', 'expenses', 'investment', 'debt', 'debt_repay', 'checking',
                  'savings', 'risk_score', 'fixed', 'variable', 'overall_expense'])
@@ -83,41 +86,83 @@ def user_df_gen():
 
     return user_data_year
 
-df = user_df_gen()
-print(df)
+def predict_net_worth(savings_increase_monthly=0):
+    """
+    Predict net worth for next 12 months
+    savings_increase_monthly: additional monthly savings to add
+    """
+    df = user_df_gen()
 
-df.set_index(pd.date_range(start="2023-01-01", periods=len(df), freq='ME'), inplace=True)
-ts = df['cash_liquid'] - df['debt']
-#ts_scaled = ts
-scaler = StandardScaler()
-ts_scaled = scaler.fit_transform(ts.values.reshape(-1, 1)).flatten()
+    df.set_index(pd.date_range(start="2023-01-01", periods=len(df), freq='M'), inplace=True)
+    ts = df['cash_liquid'] - df['debt']
 
-predictor = auto_arima(
-    ts_scaled,
-    seasonal=True,
-    m=12,
-    D=1,
-    trace=False,
-    error_action='ignore',
-    suppress_warnings=True
-)
+    scaler = StandardScaler()
+    ts_scaled = scaler.fit_transform(ts.values.reshape(-1, 1)).flatten()
 
-next_year = predictor.predict(n_periods=12)
-next_year = scaler.inverse_transform(next_year.reshape(-1, 1)).flatten()
+    predictor = auto_arima(
+        ts_scaled,
+        seasonal=True,
+        m=12,
+        D=1,
+        trace=False,
+        error_action='ignore',
+        suppress_warnings=True
+    )
 
+    next_year = predictor.predict(n_periods=12)
+    next_year = scaler.inverse_transform(next_year.reshape(-1, 1)).flatten()
 
-user_percentage_choice = 0.60
+    # Apply savings intervention
+    if savings_increase_monthly > 0:
+        intervention = np.arange(1, 13) * savings_increase_monthly
+        next_year = next_year + intervention
 
-monthly_extra = user_percentage_choice
+    next_months = pd.date_range(start=df.index[-1] + pd.offsets.MonthEnd(), periods=12, freq='M')
 
-intervention = np.arange(1, 13) * monthly_extra
+    df_predicted = pd.DataFrame({
+        "month": range(1, 13),
+        "net_worth": next_year.tolist(),
+        "date": next_months.strftime('%Y-%m').tolist()
+    })
 
+    # Get current net worth
+    current_net_worth = (df['cash_liquid'] - df['debt']).iloc[-1]
 
-next_months = pd.date_range(start=df.index[-1] + pd.offsets.MonthEnd(), periods=12, freq='ME')
+    # Get final predicted net worth
+    final_net_worth = next_year[-1]
 
-df_predicted = pd.DataFrame({
-    "Date": next_months,
-    "Future Net Worth": next_year
-})
+    # Calculate growth
+    net_worth_growth = final_net_worth - current_net_worth
+    growth_percentage = (net_worth_growth / abs(current_net_worth)) * 100
 
-print(df_predicted)
+    return {
+        "current_net_worth": float(current_net_worth),
+        "predicted_net_worth_12mo": float(final_net_worth),
+        "net_worth_growth": float(net_worth_growth),
+        "growth_percentage": float(growth_percentage),
+        "monthly_predictions": df_predicted.to_dict('records'),
+        "current_monthly_income": float(df['income'].iloc[-1]),
+        "current_variable_expenses": float(df['variable'].iloc[-1])
+    }
+
+@app.route('/api/predict', methods=['POST'])
+def get_prediction():
+    """
+    Endpoint to get net worth predictions
+    Accepts: { "additional_monthly_savings": 500 }
+    """
+    data = request.json
+    additional_savings = data.get('additional_monthly_savings', 0)
+
+    try:
+        result = predict_net_worth(additional_savings)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy"})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
