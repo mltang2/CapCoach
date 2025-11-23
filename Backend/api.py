@@ -51,8 +51,8 @@ def calc_risk(df):
 
 ############################################   Model Building  #########################################################
 
-# Default to stable data profile
-def user_df_gen(json_path="alex2Ystable.json"):
+# Default to irresponsible data profile
+def user_df_gen(json_path="alex2Yirresponsible.json"):
     with open(json_path, 'r') as fp:
         data = json.load(fp)
     month_data = data['monthly_financial_history']

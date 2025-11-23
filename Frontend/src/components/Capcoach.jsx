@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import data from '../datasets/alex2Ystable.json';
-import statementData from '../datasets/alex_stable_statement.json';
+import data from '../datasets/alex2Yirresponsible.json';
+import statementData from '../datasets/alex_irresponsible_statement.json';
 import { Card } from 'react-bootstrap';
 
 export default function Capcoach({ prediction, loading, fetchPrediction }) {
@@ -66,7 +66,19 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
 
         // Target is based on PREDICTED net worth with percentage adjustment
         const baselinePredicted = prediction.predicted_net_worth_12mo;
-        const targetNetWorth = baselinePredicted * (1 + targetGrowthPercent / 100);
+
+        // For negative net worth, percentage adjustments work differently:
+        // +10% should move TOWARD zero (less negative), not away from it
+        // So we apply the percentage to the absolute value but keep directional logic
+        let targetNetWorth;
+        if (baselinePredicted < 0) {
+            // Negative net worth: +% means less negative, -% means more negative
+            const improvement = Math.abs(baselinePredicted) * (targetGrowthPercent / 100);
+            targetNetWorth = baselinePredicted + improvement; // Adding makes it less negative
+        } else {
+            // Positive net worth: standard percentage growth
+            targetNetWorth = baselinePredicted * (1 + targetGrowthPercent / 100);
+        }
 
         // Additional growth needed beyond baseline prediction
         const additionalGrowthNeeded = targetNetWorth - baselinePredicted;
@@ -239,13 +251,22 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                         <br/>
                         <Card style={{ padding: '24px', marginBottom: '24px' }}>
                             <div>
-                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px'}}>
                                     <label style={{fontSize: '16px', fontWeight: 600, margin: 0}}>
                                         Adjustment from Baseline: <span style={{color: targetGrowthPercent >= 0 ? '#28a745' : '#dc3545', fontSize: '20px'}}>
                                             {targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}%
                                         </span>
                                     </label>
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        backgroundColor: '#f8f9fa',
+                                        padding: '6px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #dee2e6'
+                                    }}>
+                                        <span style={{fontSize: '13px', color: '#666', fontWeight: 500}}>Enter:</span>
                                         <input
                                             type="number"
                                             min="-100"
@@ -259,15 +280,22 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                 }
                                             }}
                                             style={{
-                                                width: '80px',
-                                                padding: '8px',
+                                                width: '70px',
+                                                padding: '6px 8px',
                                                 borderRadius: '4px',
-                                                border: '1px solid #ccc',
+                                                border: '1px solid #ced4da',
                                                 fontSize: '14px',
-                                                textAlign: 'right'
+                                                textAlign: 'center',
+                                                fontWeight: 600,
+                                                color: '#003E5C',
+                                                backgroundColor: 'white',
+                                                outline: 'none',
+                                                transition: 'border-color 0.2s'
                                             }}
+                                            onFocus={(e) => e.target.style.borderColor = '#003E5C'}
+                                            onBlur={(e) => e.target.style.borderColor = '#ced4da'}
                                         />
-                                        <span style={{fontSize: '14px', color: '#666'}}>%</span>
+                                        <span style={{fontSize: '14px', color: '#003E5C', fontWeight: 600}}>%</span>
                                     </div>
                                 </div>
                                 <p style={{fontSize: '14px', color: '#666', marginBottom: '12px'}}>

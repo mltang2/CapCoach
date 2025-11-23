@@ -1,5 +1,5 @@
-import data from '../datasets/alex2Ystable.json';
-import statementData from '../datasets/alex_stable_statement.json';
+import data from '../datasets/alex2Yirresponsible.json';
+import statementData from '../datasets/alex_irresponsible_statement.json';
 import { Card } from 'react-bootstrap';
 import Transactions from './Transactions';
 
