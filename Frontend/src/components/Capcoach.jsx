@@ -239,11 +239,37 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                         <br/>
                         <Card style={{ padding: '24px', marginBottom: '24px' }}>
                             <div>
-                                <label style={{fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'block'}}>
-                                    Adjustment from Baseline: <span style={{color: targetGrowthPercent >= 0 ? '#28a745' : '#dc3545', fontSize: '20px'}}>
-                                        {targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}%
-                                    </span>
-                                </label>
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                                    <label style={{fontSize: '16px', fontWeight: 600, margin: 0}}>
+                                        Adjustment from Baseline: <span style={{color: targetGrowthPercent >= 0 ? '#28a745' : '#dc3545', fontSize: '20px'}}>
+                                            {targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}%
+                                        </span>
+                                    </label>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                        <input
+                                            type="number"
+                                            min="-100"
+                                            max="100"
+                                            step="0.1"
+                                            value={targetGrowthPercent}
+                                            onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                if (val >= -100 && val <= 100) {
+                                                    setTargetGrowthPercent(val);
+                                                }
+                                            }}
+                                            style={{
+                                                width: '80px',
+                                                padding: '8px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ccc',
+                                                fontSize: '14px',
+                                                textAlign: 'right'
+                                            }}
+                                        />
+                                        <span style={{fontSize: '14px', color: '#666'}}>%</span>
+                                    </div>
+                                </div>
                                 <p style={{fontSize: '14px', color: '#666', marginBottom: '12px'}}>
                                     Baseline prediction: {prediction ? prediction.predicted_net_worth_12mo.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) : '...'}
                                 </p>
@@ -361,7 +387,7 @@ export default function Capcoach({ prediction, loading, fetchPrediction }) {
                                                     </div>
                                                 </Card>
                                             </div>
-                                            {calculation.additionalSavingsNeeded > 100 && (
+                                            {calculation.additionalSavingsNeeded > 0.01 && (
                                                 <>
                                                     <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
                                                         <p style={{color: '#004879', marginBottom: '8px'}}>
