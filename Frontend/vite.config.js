@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   base: '/CapCoach',
   build: {
-    // Put the static build at the repo root so GitHub Pages "docs/" source can find it
     outDir: '../docs'
   }
 })
