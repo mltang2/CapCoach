@@ -1,0 +1,193 @@
+{
+  "user_id": "MOCK_U002_RISKY",
+  "statements": [
+    {
+      "statement_period": "2023-01",
+      "starting_balance": 700.0,
+      "ending_balance": 800.0,
+      "total_deposits": 5200,
+      "total_withdrawals": 5100,
+      "transactions": [
+        {
+          "date": "2023-01-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5200,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-01-02",
+          "description": "City Property Management",
+          "amount": -1917,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-05",
+          "description": "Electric Company",
+          "amount": -274,
+          "category": "Utilities",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-06",
+          "description": "Fiber Internet",
+          "amount": -137,
+          "category": "Bills",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-10",
+          "description": "FedLoan Servicing",
+          "amount": -1652,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-12",
+          "description": "Chase Credit Card Autopay",
+          "amount": -708,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-15",
+          "description": "Target",
+          "amount": -215.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-18",
+          "description": "Uber Ride",
+          "amount": -45.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-20",
+          "description": "Bar & Grill",
+          "amount": -85.50,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-25",
+          "description": "Concert Tickets",
+          "amount": -150.00,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    },
+    {
+      "statement_period": "2023-02",
+      "starting_balance": 800.0,
+      "ending_balance": 900.0,
+      "total_deposits": 5200,
+      "total_withdrawals": 5100,
+      "transactions": [
+        {
+          "date": "2023-02-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5200,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-02-02",
+          "description": "City Property Management",
+          "amount": -1917,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-05",
+          "description": "Electric Company",
+          "amount": -274,
+          "category": "Utilities",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-10",
+          "description": "FedLoan Servicing",
+          "amount": -1652,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-14",
+          "description": "Valentine's Dinner",
+          "amount": -200.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-18",
+          "description": "Shell Station",
+          "amount": -65.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-25",
+          "description": "Online Gaming Subscription",
+          "amount": -25.00,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    },
+    {
+      "statement_period": "2023-03",
+      "starting_balance": 900.0,
+      "ending_balance": 1000.0,
+      "total_deposits": 5200,
+      "total_withdrawals": 5100,
+      "transactions": [
+        {
+          "date": "2023-03-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5200,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-03-02",
+          "description": "City Property Management",
+          "amount": -1917,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-10",
+          "description": "FedLoan Servicing",
+          "amount": -1652,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-15",
+          "description": "Impulse Purchase - Electronics",
+          "amount": -350.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-20",
+          "description": "Uber Eats",
+          "amount": -45.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-28",
+          "description": "Local Coffee Shop",
+          "amount": -15.50,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    }
+  ]
+}

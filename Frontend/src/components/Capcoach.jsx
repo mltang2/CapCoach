@@ -1,5 +1,558 @@
+import { useState, useEffect } from 'react';
+import data from '../datasets/alex2Yrisky.json';
+import statementData from '../datasets/alex_risky_statement.json';
+import { Card } from 'react-bootstrap';
+
 export default function Capcoach(props) {
-    return <div>
-        <h1>Capcoach!</h1>
+    const [prediction, setPrediction] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [userChoice, setUserChoice] = useState(null); // 'satisfied', 'higher', 'lower'
+    const [targetGrowthPercent, setTargetGrowthPercent] = useState(null);
+
+    const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
+
+    const avgMonthlyIncome = latestMonth.cash_flow.income.total;
+    const avgFixedExpenses = latestMonth.cash_flow.expenses.fixed;
+    const avgDebtPayments = latestMonth.cash_flow.expenses.debt_payments;
+
+    const essentialExpenses = avgFixedExpenses + avgDebtPayments;
+    const maxSavingsPotential = avgMonthlyIncome - essentialExpenses;
+
+    // Calculate average spending by category from statement data
+    const calculateSpendingByCategory = () => {
+        const categoryTotals = {};
+        const recentStatements = statementData.statements.slice(-3); // Last 3 months
+
+        recentStatements.forEach((statement) => {
+            statement.transactions.forEach((transaction) => {
+                if (transaction.type === 'debit' && transaction.category === 'Variable') {
+                    // Categorize variable expenses based on merchant
+                    const merchant = transaction.description.toLowerCase();
+                    let category = 'other';
+
+                    if (merchant.includes('restaurant') || merchant.includes('bar') || merchant.includes('grill') ||
+                        merchant.includes('eats') || merchant.includes("valentine's")) {
+                        category = 'dining';
+                    } else if (merchant.includes('concert') || merchant.includes('gaming') ||
+                               merchant.includes('entertainment') || merchant.includes('ticket')) {
+                        category = 'entertainment';
+                    } else if (merchant.includes('target') || merchant.includes('purchase') || merchant.includes('electronics')) {
+                        category = 'shopping';
+                    } else if (merchant.includes('uber') || merchant.includes('shell') || merchant.includes('gas')) {
+                        category = 'transportation';
+                    }
+
+                    if (!categoryTotals[category]) {
+                        categoryTotals[category] = 0;
+                    }
+                    categoryTotals[category] += Math.abs(transaction.amount);
+                }
+            });
+        });
+
+        // Calculate monthly averages
+        const monthlyAverages = {};
+        Object.keys(categoryTotals).forEach(category => {
+            monthlyAverages[category] = categoryTotals[category] / 3;
+        });
+
+        return monthlyAverages;
+    };
+
+    const spendingByCategory = calculateSpendingByCategory();
+
+    // Initial prediction on mount
+    useEffect(() => {
+        fetchPrediction(0);
+    }, []);
+
+    const fetchPrediction = async (additionalSavings) => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:5001/api/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    additional_monthly_savings: additionalSavings
+                })
+            });
+            const data = await response.json();
+            setPrediction(data);
+        } catch (error) {
+            console.error('Error fetching prediction:', error);
+            alert('Error connecting to backend. Please make sure the Flask server is running on port 5001.');
+        }
+        setLoading(false);
+    };
+
+    const handleUserChoice = (choice) => {
+        setUserChoice(choice);
+        if (choice === 'adjust') {
+            setTargetGrowthPercent(0);
+        }
+    };
+
+    const calculateSavingsForTarget = () => {
+        if (targetGrowthPercent === null || !prediction) return null;
+
+        // Target is based on PREDICTED net worth with percentage adjustment
+        const baselinePredicted = prediction.predicted_net_worth_12mo;
+        const targetNetWorth = baselinePredicted * (1 + targetGrowthPercent / 100);
+
+        // Additional growth needed beyond baseline prediction
+        const additionalGrowthNeeded = targetNetWorth - baselinePredicted;
+        const additionalSavingsNeeded = additionalGrowthNeeded / 12;
+
+        // Check if achievable - comparing against max savings potential
+        // For negative adjustments (decreasing target), always achievable
+        // For positive adjustments, need to check if additional savings is within capacity
+        const isAchievable = additionalSavingsNeeded <= maxSavingsPotential;
+
+        // Calculate what percentage of income this represents
+        const percentageOfIncome = (additionalSavingsNeeded / avgMonthlyIncome) * 100;
+
+        // Calculate maximum possible adjustment
+        const maxAdditionalGrowth = maxSavingsPotential * 12;
+        const maxTargetNetWorth = baselinePredicted + maxAdditionalGrowth;
+        const maxAdjustmentPercent = ((maxTargetNetWorth - baselinePredicted) / Math.abs(baselinePredicted)) * 100;
+
+        return {
+            targetNetWorth,
+            additionalGrowthNeeded,
+            additionalSavingsNeeded,
+            isAchievable,
+            percentageOfIncome,
+            maxMonthlySavings: maxSavingsPotential,
+            maxAdditionalGrowth,
+            maxAdjustmentPercent,
+            baselinePredicted
+        };
+    };
+
+    const applyTargetSavings = () => {
+        const calculation = calculateSavingsForTarget();
+        if (calculation) {
+            fetchPrediction(calculation.additionalSavingsNeeded);
+        }
+    };
+
+    return <div className="dashboard-style">
+        <br/>
+        <h1 style={{fontWeight: 800}}>CapCoach - AI Financial Planner</h1>
+        <br/>
+
+        {loading && (
+            <Card style={{ padding: '40px', textAlign: 'center' }}>
+                <h3 style={{color: '#003E5C'}}>Loading AI Predictions...</h3>
+                <p style={{color: '#666'}}>Analyzing your financial data with machine learning...</p>
+            </Card>
+        )}
+
+        {!loading && prediction && (
+            <>
+                {/* Current vs Predicted Net Worth */}
+                <h3 style={{color: '#003E5C'}}>AI-Powered Net Worth Prediction</h3>
+                <br/>
+                <div className="dashboard-cards">
+                    <Card>
+                        <div style={{margin: "10px"}}>
+                            <p style={{fontWeight: 600}}>Current Net Worth</p>
+                            <p style={{fontSize: "28px", color: '#003E5C', fontWeight: 700}}>
+                                ${prediction.current_net_worth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </p>
+                            <p style={{fontSize: "12px", color: '#666'}}>As of now</p>
+                        </div>
+                    </Card>
+                    <Card>
+                        <div style={{margin: "10px"}}>
+                            <p style={{fontWeight: 600}}>Predicted Net Worth (12 months)</p>
+                            <p style={{fontSize: "28px", color: '#28a745', fontWeight: 700}}>
+                                ${prediction.predicted_net_worth_12mo.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </p>
+                            <p style={{fontSize: "12px", color: '#666'}}>AI Forecast</p>
+                        </div>
+                    </Card>
+                    <Card>
+                        <div style={{margin: "10px"}}>
+                            <p style={{fontWeight: 600}}>Expected Growth</p>
+                            <p style={{fontSize: "28px", color: prediction.growth_percentage >= 0 ? '#28a745' : '#dc3545', fontWeight: 700}}>
+                                {prediction.growth_percentage >= 0 ? '+' : ''}{prediction.growth_percentage.toFixed(1)}%
+                            </p>
+                            <p style={{fontSize: "12px", color: '#666'}}>
+                                ${Math.abs(prediction.net_worth_growth).toLocaleString('en-US', {minimumFractionDigits: 2})}
+                            </p>
+                        </div>
+                    </Card>
+                </div>
+
+                <br/>
+
+                {/* User Satisfaction Question */}
+                {!userChoice && (
+                    <>
+                        <Card style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f8f9fa' }}>
+                            <h3 style={{color: '#003E5C', marginBottom: '20px'}}>
+                                Are you satisfied with this projected growth?
+                            </h3>
+                            <div style={{display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap'}}>
+                                <button
+                                    onClick={() => handleUserChoice('satisfied')}
+                                    style={{
+                                        backgroundColor: '#28a745',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '16px 40px',
+                                        borderRadius: '8px',
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        minWidth: '200px'
+                                    }}
+                                >
+                                    ✓ Yes, I'm satisfied
+                                </button>
+                                <button
+                                    onClick={() => handleUserChoice('adjust')}
+                                    style={{
+                                        backgroundColor: '#ffc107',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '16px 40px',
+                                        borderRadius: '8px',
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        minWidth: '200px'
+                                    }}
+                                >
+                                    ✎ No, I want to adjust it
+                                </button>
+                            </div>
+                        </Card>
+                    </>
+                )}
+
+                {/* Satisfied Response */}
+                {userChoice === 'satisfied' && (
+                    <>
+                        <br/>
+                        <Card style={{ padding: '30px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
+                            <div style={{textAlign: 'center'}}>
+                                <h2 style={{color: '#155724', marginBottom: '16px'}}>✓ Great! Keep up the good work!</h2>
+                                <p style={{fontSize: '18px', color: '#155724', lineHeight: '1.6'}}>
+                                    Based on your current spending and saving habits, you're on track to grow your net worth by{' '}
+                                    <strong>${Math.abs(prediction.net_worth_growth).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>{' '}
+                                    over the next year.
+                                </p>
+                            </div>
+                        </Card>
+                        <br/>
+                        <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
+                            <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Tips to Stay on Track</h4>
+                            <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
+                                <li>Continue your current saving habits</li>
+                                <li>Review your budget monthly to catch any overspending early</li>
+                                <li>Consider automating your savings to make it effortless</li>
+                                <li>Build an emergency fund if you haven't already (3-6 months of expenses)</li>
+                            </ul>
+                        </Card>
+                    </>
+                )}
+
+                {/* Adjust Target */}
+                {userChoice === 'adjust' && (
+                    <>
+                        <br/>
+                        <h3 style={{color: '#003E5C'}}>Adjust Your Net Worth Target</h3>
+                        <br/>
+                        <Card style={{ padding: '24px', marginBottom: '24px' }}>
+                            <div>
+                                <label style={{fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'block'}}>
+                                    Adjustment from Baseline: <span style={{color: targetGrowthPercent >= 0 ? '#28a745' : '#dc3545', fontSize: '20px'}}>
+                                        {targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}%
+                                    </span>
+                                </label>
+                                <p style={{fontSize: '14px', color: '#666', marginBottom: '12px'}}>
+                                    Baseline prediction: {prediction ? prediction.predicted_net_worth_12mo.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) : '...'}
+                                </p>
+                                <input
+                                    type="range"
+                                    min="-100"
+                                    max="100"
+                                    step="5"
+                                    value={targetGrowthPercent}
+                                    onChange={(e) => setTargetGrowthPercent(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        height: '8px',
+                                        borderRadius: '5px',
+                                        background: 'linear-gradient(to right, #dc3545 0%, #ffc107 50%, #28a745 100%)',
+                                        outline: 'none',
+                                        marginBottom: '20px'
+                                    }}
+                                />
+                                <div style={{display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '12px'}}>
+                                    <span>-100%</span>
+                                    <span>0%</span>
+                                    <span>+100%</span>
+                                </div>
+                            </div>
+                            <br/>
+                            <button
+                                onClick={applyTargetSavings}
+                                style={{
+                                    backgroundColor: '#003E5C',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 32px',
+                                    borderRadius: '8px',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    width: '100%'
+                                }}
+                            >
+                                Calculate Savings Plan
+                            </button>
+                        </Card>
+
+                        {targetGrowthPercent !== null && (() => {
+                            const calculation = calculateSavingsForTarget();
+                            if (!calculation) return null;
+
+                            // If adjustment is 0 or negative, it's always achievable (reducing spending)
+                            const isReducingTarget = targetGrowthPercent <= 0;
+
+                            return (
+                                <>
+                                    {isReducingTarget ? (
+                                        <>
+                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
+                                                <div style={{textAlign: 'center'}}>
+                                                    <h2 style={{color: '#856404', marginBottom: '16px'}}>Lower Target Selected</h2>
+                                                    <p style={{fontSize: '18px', color: '#856404', marginBottom: '12px'}}>
+                                                        Your adjusted target: {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
+                                                        {' '}({targetGrowthPercent}% adjustment)
+                                                    </p>
+                                                    <p style={{fontSize: '16px', color: '#856404'}}>
+                                                        This is {Math.abs(calculation.additionalSavingsNeeded).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}/month less than your baseline trajectory. You'll have more spending flexibility!
+                                                    </p>
+                                                </div>
+                                            </Card>
+                                            <Card style={{ padding: '20px', backgroundColor: '#e7f3ff' }}>
+                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Enjoying Life While Building Wealth</h4>
+                                                <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
+                                                    <li>It's okay to prioritize current lifestyle and experiences</li>
+                                                    <li>You can still build wealth at a comfortable pace</li>
+                                                    <li>Consider allocating the extra funds to things that bring you joy</li>
+                                                    <li>Keep an eye on your spending to ensure you stay on track</li>
+                                                </ul>
+                                            </Card>
+                                        </>
+                                    ) : calculation.isAchievable ? (
+                                        <>
+                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#d4edda', border: '1px solid #c3e6cb' }}>
+                                                <div style={{textAlign: 'center'}}>
+                                                    <h2 style={{color: '#155724', marginBottom: '16px'}}>✓ Goal is Achievable!</h2>
+                                                    <p style={{fontSize: '18px', color: '#155724', marginBottom: '8px'}}>
+                                                        To reach {calculation.targetNetWorth.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} in 12 months
+                                                    </p>
+                                                    <p style={{fontSize: '14px', color: '#155724'}}>
+                                                        ({targetGrowthPercent >= 0 ? '+' : ''}{targetGrowthPercent}% from baseline: {calculation.baselinePredicted.toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
+                                                    </p>
+                                                </div>
+                                            </Card>
+
+                                            <div className="dashboard-cards">
+                                                <Card>
+                                                    <div style={{margin: "10px", textAlign: 'center'}}>
+                                                        <p style={{fontWeight: 600, color: '#666'}}>Additional Savings/Month</p>
+                                                        <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
+                                                            ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                                        </p>
+                                                    </div>
+                                                </Card>
+                                                <Card>
+                                                    <div style={{margin: "10px", textAlign: 'center'}}>
+                                                        <p style={{fontWeight: 600, color: '#666'}}>% of Income</p>
+                                                        <p style={{fontSize: "32px", color: '#003E5C', fontWeight: 700}}>
+                                                            {calculation.percentageOfIncome.toFixed(1)}%
+                                                        </p>
+                                                    </div>
+                                                </Card>
+                                                <Card>
+                                                    <div style={{margin: "10px", textAlign: 'center'}}>
+                                                        <p style={{fontWeight: 600, color: '#666'}}>Target Net Worth</p>
+                                                        <p style={{fontSize: "32px", color: '#28a745', fontWeight: 700}}>
+                                                            ${calculation.targetNetWorth.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                                                        </p>
+                                                    </div>
+                                                </Card>
+                                            </div>
+                                            {calculation.additionalSavingsNeeded > 100 && (
+                                                <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
+                                                    <p style={{color: '#004879', marginBottom: '8px'}}>
+                                                        💰 Save an <strong>additional ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong> beyond your current trajectory to reach this goal
+                                                    </p>
+                                                </Card>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Card style={{ padding: '24px', marginBottom: '16px', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb' }}>
+                                                <div style={{textAlign: 'center'}}>
+                                                    <h2 style={{color: '#721c24', marginBottom: '16px'}}>⚠ Goal Exceeds Maximum Capacity</h2>
+                                                    <p style={{fontSize: '16px', color: '#721c24', marginBottom: '12px'}}>
+                                                        Target requires ${calculation.additionalSavingsNeeded.toLocaleString('en-US', {minimumFractionDigits: 2})}/month additional savings,
+                                                        but max capacity is ${calculation.maxMonthlySavings.toLocaleString('en-US', {minimumFractionDigits: 2})}/month
+                                                    </p>
+                                                    <p style={{fontSize: '14px', color: '#721c24'}}>
+                                                        Maximum achievable: {calculation.maxAdjustmentPercent.toFixed(1)}% adjustment
+                                                        ({(calculation.baselinePredicted + calculation.maxAdditionalGrowth).toLocaleString('en-US', {style: 'currency', currency: 'USD'})})
+                                                    </p>
+                                                </div>
+                                            </Card>
+
+                                            <Card style={{ padding: '20px', backgroundColor: '#fff3cd', border: '1px solid #ffc107' }}>
+                                                <h4 style={{color: '#856404', marginBottom: '16px'}}>💰 Ways to Bridge the Gap</h4>
+                                                <p style={{color: '#856404', marginBottom: '16px'}}>
+                                                    Reduce spending by <strong>${(calculation.additionalSavingsNeeded - calculation.maxMonthlySavings).toLocaleString('en-US', {minimumFractionDigits: 2})}/month</strong>:
+                                                </p>
+
+                                                <div style={{backgroundColor: 'white', padding: '16px', borderRadius: '8px'}}>
+                                                    <h5 style={{color: '#003E5C', marginBottom: '12px'}}>Recommended Spending Cuts:</h5>
+
+                                                    {(() => {
+                                                        const gap = calculation.additionalSavingsNeeded - calculation.maxMonthlySavings;
+                                                        const totalVariableSpending = Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0);
+
+                                                        // Calculate proportional cuts based on actual spending
+                                                        const recommendations = [];
+
+                                                        if (spendingByCategory.dining > 0) {
+                                                            const cutAmount = Math.min(
+                                                                (spendingByCategory.dining / totalVariableSpending) * gap,
+                                                                spendingByCategory.dining * 0.5 // Max 50% cut
+                                                            );
+                                                            recommendations.push({
+                                                                icon: '🍽️',
+                                                                category: 'Dining & Restaurants',
+                                                                current: spendingByCategory.dining,
+                                                                cut: cutAmount,
+                                                                tip: 'Cook at home more, limit takeout to 2-3 times/week'
+                                                            });
+                                                        }
+
+                                                        if (spendingByCategory.shopping > 0 || spendingByCategory.entertainment > 0) {
+                                                            const totalShopEnt = (spendingByCategory.shopping || 0) + (spendingByCategory.entertainment || 0);
+                                                            const cutAmount = Math.min(
+                                                                (totalShopEnt / totalVariableSpending) * gap,
+                                                                totalShopEnt * 0.5
+                                                            );
+                                                            recommendations.push({
+                                                                icon: '🛍️',
+                                                                category: 'Shopping & Entertainment',
+                                                                current: totalShopEnt,
+                                                                cut: cutAmount,
+                                                                tip: 'Limit impulse purchases, use 24-hour rule'
+                                                            });
+                                                        }
+
+                                                        if (spendingByCategory.transportation > 0) {
+                                                            const cutAmount = Math.min(
+                                                                (spendingByCategory.transportation / totalVariableSpending) * gap,
+                                                                spendingByCategory.transportation * 0.4
+                                                            );
+                                                            recommendations.push({
+                                                                icon: '🚗',
+                                                                category: 'Transportation',
+                                                                current: spendingByCategory.transportation,
+                                                                cut: cutAmount,
+                                                                tip: 'Carpool, public transit, combine errands'
+                                                            });
+                                                        }
+
+                                                        if (spendingByCategory.other > 0) {
+                                                            const cutAmount = Math.min(
+                                                                (spendingByCategory.other / totalVariableSpending) * gap,
+                                                                spendingByCategory.other * 0.4
+                                                            );
+                                                            recommendations.push({
+                                                                icon: '💳',
+                                                                category: 'Other Variable Expenses',
+                                                                current: spendingByCategory.other,
+                                                                cut: cutAmount,
+                                                                tip: 'Review and reduce non-essential spending'
+                                                            });
+                                                        }
+
+                                                        return recommendations.map((rec, idx) => (
+                                                            <div key={idx} style={{
+                                                                marginBottom: idx < recommendations.length - 1 ? '10px' : '0',
+                                                                paddingLeft: '12px',
+                                                                borderLeft: '3px solid #ffc107'
+                                                            }}>
+                                                                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                                                                    <span style={{fontWeight: 600}}>{rec.icon} {rec.category}</span>
+                                                                    <span style={{color: '#dc3545', fontWeight: 600}}>
+                                                                        -${rec.cut.toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                                <p style={{fontSize: '12px', color: '#999', margin: '2px 0'}}>
+                                                                    Current: ${rec.current.toFixed(2)}/mo
+                                                                </p>
+                                                                <p style={{fontSize: '13px', color: '#666', margin: '4px 0 0 0'}}>
+                                                                    {rec.tip}
+                                                                </p>
+                                                            </div>
+                                                        ));
+                                                    })()}
+                                                </div>
+                                            </Card>
+
+                                            <Card style={{ padding: '20px', backgroundColor: '#e7f3ff', marginTop: '16px' }}>
+                                                <h4 style={{color: '#003E5C', marginBottom: '12px'}}>💡 Alternative Options</h4>
+                                                <ul style={{color: '#004879', lineHeight: '1.8', paddingLeft: '20px'}}>
+                                                    <li>Side hustle or freelance work to boost income</li>
+                                                    <li>Extend timeline to 18-24 months</li>
+                                                    <li>Negotiate bills to reduce fixed expenses</li>
+                                                    <li>Refinance high-interest debts</li>
+                                                </ul>
+                                            </Card>
+                                        </>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </>
+                )}
+
+                {userChoice && (
+                    <>
+                        <br/>
+                        <button
+                            onClick={() => {
+                                setUserChoice(null);
+                                setTargetGrowthPercent(null);
+                                fetchPrediction(0);
+                            }}
+                            style={{
+                                backgroundColor: '#6c757d',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            ← Start Over
+                        </button>
+                    </>
+                )}
+            </>
+        )}
     </div>
 }

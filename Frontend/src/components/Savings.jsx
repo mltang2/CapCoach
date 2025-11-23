@@ -1,57 +1,29 @@
-import data from '../datasets/alex2Ystable.json';
+import data from '../datasets/alex2Yrisky.json';
+import statementData from '../datasets/alex_risky_statement.json';
 import { Card } from 'react-bootstrap';
 
 export default function Savings(props) {
     const latestMonth = data.monthly_financial_history[data.monthly_financial_history.length - 1];
     var savingsTotal = latestMonth.balance_sheet_snapshot.liquid_assets.savings_account.toLocaleString('en-US');
     var monthlyIncome = latestMonth.cash_flow.income.total.toLocaleString('en-US');
-    var autoTransfer = "1,244"; 
+    var autoTransfer = "1,244";
     var transferFrequency = "monthly";
 
+    // Get only credit transactions (income) from the last 6 months
     const savingsTransactions = [];
-    const recentMonths = data.monthly_financial_history.slice(-6);
+    const recentStatements = statementData.statements.slice(-6);
 
-    recentMonths.reverse().forEach((month, monthIndex) => {
-        const monthDate = new Date(2025, 0 - monthIndex, 1); 
-        const income = month.cash_flow.income;
-
-        if (income.salary > 0) {
-            savingsTransactions.push({
-                merchant: `Salary Deposit - ${data.personal_info.occupation}`,
-                category: "salary",
-                amount: income.salary,
-                timestamp: `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-15`
-            });
-        }
-
-        if (income.freelance > 0) {
-            savingsTransactions.push({
-                merchant: "Freelance Payment",
-                category: "freelance",
-                amount: income.freelance,
-                timestamp: `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-${20 + monthIndex}`
-            });
-        }
-
-        const monthIdx = data.monthly_financial_history.findIndex(m => m.month === month.month);
-        if (monthIdx > 0) {
-            const prevMonth = data.monthly_financial_history[monthIdx - 1];
-            const savingsGrowth = month.balance_sheet_snapshot.liquid_assets.savings_account - prevMonth.balance_sheet_snapshot.liquid_assets.savings_account;
-            if (savingsGrowth > 100) {
+    recentStatements.forEach((statement) => {
+        statement.transactions.forEach((transaction) => {
+            // Only include credit transactions (income, not expenses)
+            if (transaction.type === 'credit') {
                 savingsTransactions.push({
-                    merchant: "Automatic Transfer from Checking",
-                    category: "transfer",
-                    amount: Math.round(savingsGrowth * 0.6 * 100) / 100,
-                    timestamp: `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-22`
+                    merchant: transaction.description,
+                    category: transaction.category.toLowerCase(),
+                    amount: transaction.amount,
+                    timestamp: transaction.date
                 });
             }
-        }
-
-        savingsTransactions.push({
-            merchant: "Interest Payment",
-            category: "interest",
-            amount: Math.round((month.balance_sheet_snapshot.liquid_assets.savings_account * 0.0003) * 100) / 100,
-            timestamp: `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-${25 + monthIndex}`
         });
     });
 

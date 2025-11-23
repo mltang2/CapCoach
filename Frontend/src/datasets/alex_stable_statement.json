@@ -1,0 +1,235 @@
+{
+  "user_id": "MOCK_U001_STABLE",
+  "statements": [
+    {
+      "statement_period": "2023-01",
+      "starting_balance": 2215.0,
+      "ending_balance": 4428.0,
+      "total_deposits": 5800,
+      "total_withdrawals": 3587,
+      "transactions": [
+        {
+          "date": "2023-01-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5800,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-01-02",
+          "description": "City Property Management",
+          "amount": -1477,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-05",
+          "description": "Electric Company",
+          "amount": -211,
+          "category": "Utilities",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-06",
+          "description": "Fiber Internet",
+          "amount": -105,
+          "category": "Bills",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-07",
+          "description": "Auto/Renters Insurance",
+          "amount": -317,
+          "category": "Insurance",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-10",
+          "description": "FedLoan Servicing",
+          "amount": -1033,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-12",
+          "description": "Chase Credit Card Autopay",
+          "amount": -444,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-15",
+          "description": "Whole Foods Market",
+          "amount": -150.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-18",
+          "description": "Shell Station",
+          "amount": -45.50,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-20",
+          "description": "Spotify",
+          "amount": -15.99,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-22",
+          "description": "Local Coffee Shop",
+          "amount": -12.50,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-25",
+          "description": "Netflix",
+          "amount": -19.99,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-01-28",
+          "description": "Uber Ride",
+          "amount": -35.00,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    },
+    {
+      "statement_period": "2023-02",
+      "starting_balance": 4428.0,
+      "ending_balance": 4517.0,
+      "total_deposits": 5800,
+      "total_withdrawals": 3272,
+      "transactions": [
+        {
+          "date": "2023-02-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5800,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-02-02",
+          "description": "City Property Management",
+          "amount": -1477,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-05",
+          "description": "Electric Company",
+          "amount": -211,
+          "category": "Utilities",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-06",
+          "description": "Fiber Internet",
+          "amount": -105,
+          "category": "Bills",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-10",
+          "description": "FedLoan Servicing",
+          "amount": -813,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-12",
+          "description": "Chase Credit Card Autopay",
+          "amount": -349,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-14",
+          "description": "Target",
+          "amount": -120.50,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-18",
+          "description": "Shell Station",
+          "amount": -55.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-02-25",
+          "description": "Cinema Ticket",
+          "amount": -28.00,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    },
+    {
+      "statement_period": "2023-03",
+      "starting_balance": 4517.0,
+      "ending_balance": 4474.0,
+      "total_deposits": 6881,
+      "total_withdrawals": 3385,
+      "transactions": [
+        {
+          "date": "2023-03-01",
+          "description": "Direct Deposit - Tech Corp",
+          "amount": 5800,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-03-02",
+          "description": "City Property Management",
+          "amount": -1477,
+          "category": "Rent",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-10",
+          "description": "FedLoan Servicing",
+          "amount": -892,
+          "category": "Debt",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-15",
+          "description": "Freelance Payment",
+          "amount": 1081,
+          "category": "Income",
+          "type": "credit"
+        },
+        {
+          "date": "2023-03-20",
+          "description": "Gym Membership",
+          "amount": -45.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-25",
+          "description": "Whole Foods Market",
+          "amount": -210.00,
+          "category": "Variable",
+          "type": "debit"
+        },
+        {
+          "date": "2023-03-28",
+          "description": "Amazon Purchase",
+          "amount": -89.99,
+          "category": "Variable",
+          "type": "debit"
+        }
+      ]
+    }
+  ]
+}

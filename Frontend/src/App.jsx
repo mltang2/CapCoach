@@ -5,7 +5,7 @@ import Checking from './components/Checking'
 import Savings from './components/Savings'
 import Capcoach from './components/Capcoach'
 import { useState } from 'react'
-import data from './datasets/alex2Ystable.json'
+import data from './datasets/alex2Yrisky.json'
 
 function App() {
   const [navOpen, setNavOpen] = useState(true);
