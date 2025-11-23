@@ -1,0 +1,359 @@
+{
+  "user_id": "MOCK_U001",
+  "personal_info": {
+    "first_name": "Alex",
+    "last_name": "Taylor",
+    "age": 29,
+    "marital_status": "single",
+    "city": "Austin",
+    "state": "TX",
+    "zip_code": "78701",
+    "occupation": "UX Designer"
+  },
+  "financial_summary": {
+    "credit_score_start": 720,
+    "credit_score_end": 735,
+    "total_debt_start": 28500,
+    "total_investments_start": 42000,
+    "checking_balance":  4800,
+    "saving_balance": 15000
+  },
+  "monthly_financial_history": [
+    {
+      "month": 1,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1034,
+          "debt_payments": 1484.0,
+          "total_outflow": 3244.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 17722.0,
+          "credit_card_balance": 2445.83,
+          "total_debt": 20167.83
+        },
+        "investments": {
+          "401k_balance": 32795.53,
+          "brokerage_balance": 10090.93,
+          "total_investments": 42886.46
+        }
+      }
+    },
+    {
+      "month": 2,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 879,
+          "debt_payments": 1329.0,
+          "total_outflow": 3089.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 17442.89,
+          "credit_card_balance": 2390.67,
+          "total_debt": 19833.56
+        },
+        "investments": {
+          "401k_balance": 34106.75,
+          "brokerage_balance": 10336.29,
+          "total_investments": 44443.04
+        }
+      }
+    },
+    {
+      "month": 3,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 1480,
+          "total": 7280
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 997,
+          "debt_payments": 1947.0,
+          "total_outflow": 3207.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 17162.66,
+          "credit_card_balance": 1887.5,
+          "total_debt": 19050.16
+        },
+        "investments": {
+          "401k_balance": 34406.32,
+          "brokerage_balance": 11017.79,
+          "total_investments": 45424.11
+        }
+      }
+    },
+    {
+      "month": 4,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 945,
+          "debt_payments": 1395.0,
+          "total_outflow": 3155.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 16881.31,
+          "credit_card_balance": 1822.1,
+          "total_debt": 18703.41
+        },
+        "investments": {
+          "401k_balance": 34211.64,
+          "brokerage_balance": 10799.07,
+          "total_investments": 45010.71
+        }
+      }
+    },
+    {
+      "month": 5,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1010,
+          "debt_payments": 1460.0,
+          "total_outflow": 3220.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 16598.84,
+          "credit_card_balance": 1745.51,
+          "total_debt": 18344.35
+        },
+        "investments": {
+          "401k_balance": 34862.6,
+          "brokerage_balance": 10845.96,
+          "total_investments": 45708.56
+        }
+      }
+    },
+    {
+      "month": 6,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 890,
+          "total": 6690
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 834,
+          "debt_payments": 1784.0,
+          "total_outflow": 3044.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 16315.24,
+          "credit_card_balance": 1227.51,
+          "total_debt": 17542.75
+        },
+        "investments": {
+          "401k_balance": 36238.93,
+          "brokerage_balance": 11569.37,
+          "total_investments": 47808.3
+        }
+      }
+    },
+    {
+      "month": 7,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1859,
+          "debt_payments": 2309.0,
+          "total_outflow": 4069.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 16030.5,
+          "credit_card_balance": 1141.01,
+          "total_debt": 17171.51
+        },
+        "investments": {
+          "401k_balance": 36881.72,
+          "brokerage_balance": 11616.71,
+          "total_investments": 48498.43
+        }
+      }
+    },
+    {
+      "month": 8,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1013,
+          "debt_payments": 1463.0,
+          "total_outflow": 3223.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 15744.62,
+          "credit_card_balance": 1059.93,
+          "total_debt": 16804.55
+        },
+        "investments": {
+          "401k_balance": 37234.97,
+          "brokerage_balance": 11570.94,
+          "total_investments": 48805.91
+        }
+      }
+    },
+    {
+      "month": 9,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 1250,
+          "total": 7050
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1120,
+          "debt_payments": 2070.0,
+          "total_outflow": 3330.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 15457.6,
+          "credit_card_balance": 564.36,
+          "total_debt": 16021.96
+        },
+        "investments": {
+          "401k_balance": 38181.76,
+          "brokerage_balance": 12336.92,
+          "total_investments": 50518.68
+        }
+      }
+    },
+    {
+      "month": 10,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1021,
+          "debt_payments": 1471.0,
+          "total_outflow": 3231.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 15169.43,
+          "credit_card_balance": 474.71,
+          "total_debt": 15644.14
+        },
+        "investments": {
+          "401k_balance": 38485.88,
+          "brokerage_balance": 12274.82,
+          "total_investments": 50760.7
+        }
+      }
+    },
+    {
+      "month": 11,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 0,
+          "total": 5800
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 850,
+          "debt_payments": 1300.0,
+          "total_outflow": 3060.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 14880.11,
+          "credit_card_balance": 422.41,
+          "total_debt": 15302.52
+        },
+        "investments": {
+          "401k_balance": 38307.34,
+          "brokerage_balance": 12059.51,
+          "total_investments": 50366.85
+        }
+      }
+    },
+    {
+      "month": 12,
+      "cash_flow": {
+        "income": {
+          "salary": 5800,
+          "freelance": 1100,
+          "total": 6900
+        },
+        "expenses": {
+          "fixed": 2110,
+          "variable": 1098,
+          "debt_payments": 2048.0,
+          "total_outflow": 3308.0
+        }
+      },
+      "balance_sheet_snapshot": {
+        "debts": {
+          "student_loan_balance": 14589.63,
+          "credit_card_balance": -42.05,
+          "total_debt": 14547.58
+        },
+        "investments": {
+          "401k_balance": 39838.01,
+          "brokerage_balance": 12945.93,
+          "total_investments": 52783.94
+        }
+      }
+    }
+  ]
+}
